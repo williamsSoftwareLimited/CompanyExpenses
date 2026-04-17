@@ -1,6 +1,17 @@
 import { StatusBar } from 'expo-status-bar';
 import { useMemo, useState } from 'react';
-import { FlatList, Modal, Pressable, SafeAreaView, StyleSheet, Text, TextInput, View } from 'react-native';
+import {
+  AccessibilityInfo,
+  Alert,
+  FlatList,
+  Modal,
+  Pressable,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { ExpenseItem } from './src/components/ExpenseItem';
 import { SettingsPanel } from './src/components/SettingsPanel';
 import { ExpenseSummaryCard } from './src/components/ExpenseSummaryCard';
@@ -10,7 +21,6 @@ import {
   calculateRemainingBudget,
   calculateTotalSpent,
   getBudgetStatus,
-  summarizeExpenses,
 } from './src/utils/expenseMath';
 
 const monthlyBudget = 1000;
@@ -24,34 +34,86 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<'main' | 'settings'>('main');
   const [expenseList, setExpenseList] = useState<Expense[]>(expenses);
   const [currencySymbol, setCurrencySymbol] = useState<CurrencySymbol>('€');
-  const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
+  const [modalMode, setModalMode] = useState<'create' | 'update' | null>(null);
   const [newExpenseTitle, setNewExpenseTitle] = useState('');
   const [newExpenseAmount, setNewExpenseAmount] = useState('');
+  const [selectedExpenseId, setSelectedExpenseId] = useState<string | null>(null);
 
   const totalSpent = calculateTotalSpent(expenseList);
   const remainingBudget = calculateRemainingBudget(monthlyBudget, totalSpent);
   const budgetStatus = getBudgetStatus(remainingBudget);
-  const summary = summarizeExpenses(expenses, monthlyBudget);
   const parsedExpenseAmount = useMemo(() => {
     const parsedValue = Number.parseFloat(newExpenseAmount);
     return Number.isFinite(parsedValue) ? parsedValue : null;
   }, [newExpenseAmount]);
   const isExpenseAmountValid = parsedExpenseAmount !== null && parsedExpenseAmount > 0;
-  const isCreateDisabled = useMemo(
+
+  const selectedExpense = useMemo(
+    () => expenseList.find((expense) => expense.id === selectedExpenseId) ?? null,
+    [expenseList, selectedExpenseId]
+  );
+  const hasSelectedExpense = selectedExpense !== null;
+  const isModalVisible = modalMode !== null;
+  const isUpdateMode = modalMode === 'update';
+  const submitButtonLabel = isUpdateMode ? 'Update' : 'Create';
+  const submitButtonAccessibilityHint = isUpdateMode
+    ? 'Updates the selected expense with the entered title and amount'
+    : 'Creates a new expense with the entered title and amount';
+  const modalTitle = isUpdateMode ? 'Update Expense' : 'Create Expense';
+  const cancelButtonAccessibilityLabel = isUpdateMode
+    ? 'Cancel expense update'
+    : 'Cancel expense creation';
+  const isSubmitDisabled = useMemo(
     () => !newExpenseTitle.trim() || !isExpenseAmountValid,
     [newExpenseTitle, isExpenseAmountValid]
   );
 
-  const closeCreateModal = () => {
-    setIsCreateModalVisible(false);
+  const closeModal = () => {
+    setModalMode(null);
     setNewExpenseTitle('');
     setNewExpenseAmount('');
   };
 
-  const handleCreate = () => {
+  const openCreateModal = () => {
+    setModalMode('create');
+    setNewExpenseTitle('');
+    setNewExpenseAmount('');
+  };
+
+  const openUpdateModal = () => {
+    if (!selectedExpense) {
+      return;
+    }
+
+    setModalMode('update');
+    setNewExpenseTitle(selectedExpense.title);
+    setNewExpenseAmount(selectedExpense.amount.toString());
+  };
+
+  const handleSubmitExpense = () => {
     const trimmedTitle = newExpenseTitle.trim();
 
     if (!trimmedTitle || !isExpenseAmountValid) {
+      return;
+    }
+
+    if (isUpdateMode) {
+      if (!selectedExpenseId) {
+        return;
+      }
+
+      setExpenseList((currentExpenses) =>
+        currentExpenses.map((expense) =>
+          expense.id === selectedExpenseId
+            ? {
+                ...expense,
+                title: trimmedTitle,
+                amount: parsedExpenseAmount,
+              }
+            : expense
+        )
+      );
+      closeModal();
       return;
     }
 
@@ -73,29 +135,45 @@ export default function App() {
       ];
     });
 
-    closeCreateModal();
+    closeModal();
   };
 
-  const handleUpdate = () => {
-    setExpenseList((currentExpenses) => {
-      if (currentExpenses.length === 0) {
-        return currentExpenses;
+  const handleSelectExpense = (expenseId: string) => {
+    setSelectedExpenseId((currentId) => {
+      const isSelecting = currentId !== expenseId;
+      const selectedTitle = expenseList.find((expense) => expense.id === expenseId)?.title;
+
+      if (selectedTitle) {
+        AccessibilityInfo.announceForAccessibility(
+          `${selectedTitle} ${isSelecting ? 'selected' : 'deselected'}`
+        );
       }
 
-      return currentExpenses.map((expense, index) =>
-        index === 0
-          ? {
-              ...expense,
-              amount: expense.amount + 10,
-              title: expense.title.includes('(Updated)') ? expense.title : `${expense.title} (Updated)`,
-            }
-          : expense
-      );
+      return isSelecting ? expenseId : null;
     });
   };
 
   const handleDelete = () => {
-    setExpenseList((currentExpenses) => currentExpenses.slice(0, -1));
+    if (!selectedExpenseId || !selectedExpense) {
+      return;
+    }
+
+    Alert.alert('Delete Expense', `Are you sure you want to delete "${selectedExpense.title}"?`, [
+      {
+        text: 'Cancel',
+        style: 'cancel',
+      },
+      {
+        text: 'Confirm',
+        style: 'destructive',
+        onPress: () => {
+          setExpenseList((currentExpenses) =>
+            currentExpenses.filter((expense) => expense.id !== selectedExpenseId)
+          );
+          setSelectedExpenseId(null);
+        },
+      },
+    ]);
   };
 
   return (
@@ -125,13 +203,21 @@ export default function App() {
             currencySymbol={currencySymbol}
           />
           <View style={styles.actionContainer}>
-            <Pressable style={styles.actionButton} onPress={() => setIsCreateModalVisible(true)}>
+            <Pressable style={styles.actionButton} onPress={openCreateModal}>
               <Text style={styles.actionButtonText}>Create</Text>
             </Pressable>
-            <Pressable style={styles.actionButton} onPress={handleUpdate}>
+            <Pressable
+              style={[styles.actionButton, !hasSelectedExpense && styles.disabledActionButton]}
+              onPress={openUpdateModal}
+              disabled={!hasSelectedExpense}
+            >
               <Text style={styles.actionButtonText}>Update</Text>
             </Pressable>
-            <Pressable style={styles.actionButton} onPress={handleDelete}>
+            <Pressable
+              style={[styles.actionButton, !hasSelectedExpense && styles.disabledActionButton]}
+              onPress={handleDelete}
+              disabled={!hasSelectedExpense}
+            >
               <Text style={styles.actionButtonText}>Delete</Text>
             </Pressable>
           </View>
@@ -139,19 +225,20 @@ export default function App() {
             data={expenseList}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
-              <ExpenseItem title={item.title} amount={item.amount} currencySymbol={currencySymbol} />
+              <ExpenseItem
+                title={item.title}
+                amount={item.amount}
+                currencySymbol={currencySymbol}
+                isSelected={item.id === selectedExpenseId}
+                onPress={() => handleSelectExpense(item.id)}
+              />
             )}
             ListEmptyComponent={<Text style={styles.emptyStateText}>No expenses available.</Text>}
           />
-          <Modal
-            visible={isCreateModalVisible}
-            transparent
-            animationType="fade"
-            onRequestClose={closeCreateModal}
-          >
+          <Modal visible={isModalVisible} transparent animationType="fade" onRequestClose={closeModal}>
             <View style={styles.modalOverlay}>
               <View style={styles.modalCard}>
-                <Text style={styles.modalTitle}>Create Expense</Text>
+                <Text style={styles.modalTitle}>{modalTitle}</Text>
                 <TextInput
                   value={newExpenseTitle}
                   onChangeText={setNewExpenseTitle}
@@ -172,19 +259,19 @@ export default function App() {
                     style={[
                       styles.actionButton,
                       styles.modalActionButton,
-                      isCreateDisabled && styles.disabledActionButton,
+                      isSubmitDisabled && styles.disabledActionButton,
                     ]}
-                    onPress={handleCreate}
-                    disabled={isCreateDisabled}
-                    accessibilityLabel="Create expense"
-                    accessibilityHint="Creates a new expense with the entered title and amount"
+                    onPress={handleSubmitExpense}
+                    disabled={isSubmitDisabled}
+                    accessibilityLabel={`${submitButtonLabel} expense`}
+                    accessibilityHint={submitButtonAccessibilityHint}
                   >
-                    <Text style={styles.actionButtonText}>Create</Text>
+                    <Text style={styles.actionButtonText}>{submitButtonLabel}</Text>
                   </Pressable>
                   <Pressable
                     style={[styles.actionButton, styles.modalActionButton, styles.cancelButton]}
-                    onPress={closeCreateModal}
-                    accessibilityLabel="Cancel expense creation"
+                    onPress={closeModal}
+                    accessibilityLabel={cancelButtonAccessibilityLabel}
                   >
                     <Text style={styles.actionButtonText}>Cancel</Text>
                   </Pressable>
