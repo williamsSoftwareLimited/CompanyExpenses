@@ -13,6 +13,10 @@ const expenseSchema = z.object({
   id: z.string(),
   title: z.string(),
   amount: z.number(),
+  description: z.string(),
+  createdDate: z.string(),
+  updatedDate: z.string(),
+  photoBlob: z.string().nullable(),
 });
 
 server.registerTool(

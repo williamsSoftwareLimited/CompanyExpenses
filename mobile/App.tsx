@@ -24,9 +24,33 @@ import {
 } from './src/utils/expenseMath';
 
 const expenses: Expense[] = [
-  { id: '1', title: 'Team Lunch', amount: 120 },
-  { id: '2', title: 'Taxi', amount: 65 },
-  { id: '3', title: 'Stationery', amount: 40 },
+  {
+    id: '1',
+    title: 'Team Lunch',
+    amount: 120,
+    description: 'Lunch with client success team.',
+    createdDate: '2026-01-05T09:00:00.000Z',
+    updatedDate: '2026-01-05T09:00:00.000Z',
+    photoBlob: null,
+  },
+  {
+    id: '2',
+    title: 'Taxi',
+    amount: 65,
+    description: 'Airport transfer for partner meeting.',
+    createdDate: '2026-01-09T08:30:00.000Z',
+    updatedDate: '2026-01-09T08:30:00.000Z',
+    photoBlob: null,
+  },
+  {
+    id: '3',
+    title: 'Stationery',
+    amount: 40,
+    description: 'Office stationery refill.',
+    createdDate: '2026-01-11T14:15:00.000Z',
+    updatedDate: '2026-01-11T14:15:00.000Z',
+    photoBlob: null,
+  },
 ];
 
 export default function App() {
@@ -37,6 +61,8 @@ export default function App() {
   const [modalMode, setModalMode] = useState<'create' | 'update' | null>(null);
   const [newExpenseTitle, setNewExpenseTitle] = useState('');
   const [newExpenseAmount, setNewExpenseAmount] = useState('');
+  const [newExpenseDescription, setNewExpenseDescription] = useState('');
+  const [newExpensePhotoBlob, setNewExpensePhotoBlob] = useState('');
   const [selectedExpenseId, setSelectedExpenseId] = useState<string | null>(null);
 
   const totalSpent = calculateTotalSpent(expenseList);
@@ -72,12 +98,16 @@ export default function App() {
     setModalMode(null);
     setNewExpenseTitle('');
     setNewExpenseAmount('');
+    setNewExpenseDescription('');
+    setNewExpensePhotoBlob('');
   };
 
   const openCreateModal = () => {
     setModalMode('create');
     setNewExpenseTitle('');
     setNewExpenseAmount('');
+    setNewExpenseDescription('');
+    setNewExpensePhotoBlob('');
   };
 
   const openUpdateModal = () => {
@@ -88,10 +118,14 @@ export default function App() {
     setModalMode('update');
     setNewExpenseTitle(selectedExpense.title);
     setNewExpenseAmount(selectedExpense.amount.toString());
+    setNewExpenseDescription(selectedExpense.description);
+    setNewExpensePhotoBlob(selectedExpense.photoBlob ?? '');
   };
 
   const handleSubmitExpense = () => {
     const trimmedTitle = newExpenseTitle.trim();
+    const trimmedDescription = newExpenseDescription.trim();
+    const trimmedPhotoBlob = newExpensePhotoBlob.trim();
 
     if (!trimmedTitle || !isExpenseAmountValid) {
       return;
@@ -109,6 +143,9 @@ export default function App() {
                 ...expense,
                 title: trimmedTitle,
                 amount: parsedExpenseAmount,
+                description: trimmedDescription,
+                updatedDate: new Date().toISOString(),
+                photoBlob: trimmedPhotoBlob || null,
               }
             : expense
         )
@@ -131,6 +168,10 @@ export default function App() {
           id: nextExpenseId.toString(),
           title: trimmedTitle,
           amount: parsedExpenseAmount,
+          description: trimmedDescription,
+          createdDate: new Date().toISOString(),
+          updatedDate: new Date().toISOString(),
+          photoBlob: trimmedPhotoBlob || null,
         },
       ];
     });
@@ -233,6 +274,10 @@ export default function App() {
               <ExpenseItem
                 title={item.title}
                 amount={item.amount}
+                description={item.description}
+                createdDate={item.createdDate}
+                updatedDate={item.updatedDate}
+                photoBlob={item.photoBlob}
                 currencySymbol={currencySymbol}
                 isSelected={item.id === selectedExpenseId}
                 onPress={() => handleSelectExpense(item.id)}
@@ -257,6 +302,21 @@ export default function App() {
                   placeholder="Amount"
                   keyboardType="decimal-pad"
                   accessibilityLabel="Expense amount"
+                  style={styles.modalInput}
+                />
+                <TextInput
+                  value={newExpenseDescription}
+                  onChangeText={setNewExpenseDescription}
+                  placeholder="Description"
+                  accessibilityLabel="Expense description"
+                  style={styles.modalInput}
+                  multiline
+                />
+                <TextInput
+                  value={newExpensePhotoBlob}
+                  onChangeText={setNewExpensePhotoBlob}
+                  placeholder="Photo blob"
+                  accessibilityLabel="Expense photo blob"
                   style={styles.modalInput}
                 />
                 <View style={styles.modalActions}>

@@ -4,6 +4,10 @@ import { CurrencySymbol, formatCurrency } from '../utils/expenseMath';
 type ExpenseItemProps = {
   title: string;
   amount: number;
+  description: string;
+  createdDate: string;
+  updatedDate: string;
+  photoBlob: string | null;
   currencySymbol: CurrencySymbol;
   isSelected?: boolean;
   onPress?: () => void;
@@ -12,10 +16,17 @@ type ExpenseItemProps = {
 export const ExpenseItem = ({
   title,
   amount,
+  description,
+  createdDate,
+  updatedDate,
+  photoBlob,
   currencySymbol,
   isSelected = false,
   onPress,
 }: ExpenseItemProps) => {
+  const formattedCreatedDate = new Date(createdDate).toLocaleDateString();
+  const formattedUpdatedDate = new Date(updatedDate).toLocaleDateString();
+
   return (
     <Pressable
       style={[styles.item, isSelected && styles.selectedItem]}
@@ -25,7 +36,11 @@ export const ExpenseItem = ({
       accessibilityLabel={`${title}, ${formatCurrency(amount, currencySymbol)}`}
     >
       <Text style={styles.title}>{title}</Text>
+      <Text style={styles.description}>{description || 'No description provided.'}</Text>
       <Text>{formatCurrency(amount, currencySymbol)}</Text>
+      <Text style={styles.metadataText}>Created: {formattedCreatedDate}</Text>
+      <Text style={styles.metadataText}>Updated: {formattedUpdatedDate}</Text>
+      <Text style={styles.metadataText}>Photo: {photoBlob ? 'Attached' : 'Not attached'}</Text>
     </Pressable>
   );
 };
@@ -45,5 +60,13 @@ const styles = StyleSheet.create({
   title: {
     fontWeight: '600',
     marginBottom: 2,
+  },
+  description: {
+    color: '#404040',
+    marginBottom: 2,
+  },
+  metadataText: {
+    color: '#606060',
+    fontSize: 12,
   },
 });
