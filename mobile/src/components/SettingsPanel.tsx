@@ -27,9 +27,16 @@ export const SettingsPanel = ({
   }, [budget]);
 
   const handleBudgetEndEditing = () => {
-    const parsedBudget = Number.parseFloat(budgetInput);
+    const trimmedBudgetInput = budgetInput.trim();
 
-    if (Number.isFinite(parsedBudget) && parsedBudget >= 0) {
+    if (!trimmedBudgetInput) {
+      setBudgetInput(budget.toString());
+      return;
+    }
+
+    const parsedBudget = Number.parseFloat(trimmedBudgetInput);
+
+    if (Number.isFinite(parsedBudget) && parsedBudget > 0) {
       onBudgetChange(parsedBudget);
       setBudgetInput(parsedBudget.toString());
       return;
