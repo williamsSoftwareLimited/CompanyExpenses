@@ -63,6 +63,7 @@ export const SettingsPanel = ({
         onChangeText={setBudgetInput}
         onEndEditing={handleBudgetEndEditing}
         keyboardType="decimal-pad"
+        accessible
         accessibilityLabel="Budget amount"
         style={styles.budgetInput}
       />
