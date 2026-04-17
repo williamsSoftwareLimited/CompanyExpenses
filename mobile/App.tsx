@@ -45,7 +45,13 @@ export default function App() {
   const isModalVisible = modalMode !== null;
   const isUpdateMode = modalMode === 'update';
   const submitButtonLabel = isUpdateMode ? 'Update' : 'Create';
+  const submitButtonAccessibilityHint = isUpdateMode
+    ? 'Updates the selected expense with the entered title and amount'
+    : 'Creates a new expense with the entered title and amount';
   const modalTitle = isUpdateMode ? 'Update Expense' : 'Create Expense';
+  const cancelButtonAccessibilityLabel = isUpdateMode
+    ? 'Cancel expense update'
+    : 'Cancel expense creation';
   const isSubmitDisabled = useMemo(
     () => !newExpenseTitle.trim() || !isExpenseAmountValid,
     [newExpenseTitle, isExpenseAmountValid]
@@ -236,13 +242,14 @@ export default function App() {
                     onPress={handleSubmitExpense}
                     disabled={isSubmitDisabled}
                     accessibilityLabel={`${submitButtonLabel} expense`}
+                    accessibilityHint={submitButtonAccessibilityHint}
                   >
                     <Text style={styles.actionButtonText}>{submitButtonLabel}</Text>
                   </Pressable>
                   <Pressable
                     style={[styles.actionButton, styles.modalActionButton, styles.cancelButton]}
                     onPress={closeModal}
-                    accessibilityLabel="Cancel expense creation"
+                    accessibilityLabel={cancelButtonAccessibilityLabel}
                   >
                     <Text style={styles.actionButtonText}>Cancel</Text>
                   </Pressable>
