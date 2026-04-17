@@ -2,7 +2,7 @@ import { StatusBar } from 'expo-status-bar';
 import { FlatList, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import { ExpenseItem } from './src/components/ExpenseItem';
 import { ExpenseSummaryCard } from './src/components/ExpenseSummaryCard';
-import { Expense, calculateRemainingBudget, calculateTotalSpent, getBudgetStatus } from './src/utils/expenseMath';
+import { Expense, summarizeExpenses } from './src/utils/expenseMath';
 
 const monthlyBudget = 1000;
 const expenses: Expense[] = [
@@ -12,17 +12,15 @@ const expenses: Expense[] = [
 ];
 
 export default function App() {
-  const totalSpent = calculateTotalSpent(expenses);
-  const remainingBudget = calculateRemainingBudget(monthlyBudget, totalSpent);
-  const budgetStatus = getBudgetStatus(remainingBudget);
+  const summary = summarizeExpenses(expenses, monthlyBudget);
 
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>Company Expenses</Text>
       <ExpenseSummaryCard
         totalBudget={monthlyBudget}
-        totalSpent={totalSpent}
-        budgetStatus={budgetStatus}
+        totalSpent={summary.totalSpent}
+        budgetStatus={summary.budgetStatus}
       />
       <FlatList
         data={expenses}
