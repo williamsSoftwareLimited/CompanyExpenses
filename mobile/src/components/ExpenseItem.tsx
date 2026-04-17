@@ -17,7 +17,13 @@ export const ExpenseItem = ({
   onPress,
 }: ExpenseItemProps) => {
   return (
-    <Pressable style={[styles.item, isSelected && styles.selectedItem]} onPress={onPress}>
+    <Pressable
+      style={[styles.item, isSelected && styles.selectedItem]}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityState={{ selected: isSelected }}
+      accessibilityLabel={`${title}, ${formatCurrency(amount, currencySymbol)}`}
+    >
       <Text style={styles.title}>{title}</Text>
       <Text>{formatCurrency(amount, currencySymbol)}</Text>
     </Pressable>

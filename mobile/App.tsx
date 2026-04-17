@@ -1,6 +1,17 @@
 import { StatusBar } from 'expo-status-bar';
 import { useMemo, useState } from 'react';
-import { Alert, FlatList, Modal, Pressable, SafeAreaView, StyleSheet, Text, TextInput, View } from 'react-native';
+import {
+  AccessibilityInfo,
+  Alert,
+  FlatList,
+  Modal,
+  Pressable,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { ExpenseItem } from './src/components/ExpenseItem';
 import { SettingsPanel } from './src/components/SettingsPanel';
 import { ExpenseSummaryCard } from './src/components/ExpenseSummaryCard';
@@ -128,15 +139,26 @@ export default function App() {
   };
 
   const handleSelectExpense = (expenseId: string) => {
-    setSelectedExpenseId((currentId) => (currentId === expenseId ? null : expenseId));
+    setSelectedExpenseId((currentId) => {
+      const isSelecting = currentId !== expenseId;
+      const selectedTitle = expenseList.find((expense) => expense.id === expenseId)?.title;
+
+      if (selectedTitle) {
+        AccessibilityInfo.announceForAccessibility(
+          `${selectedTitle} ${isSelecting ? 'selected' : 'deselected'}`
+        );
+      }
+
+      return isSelecting ? expenseId : null;
+    });
   };
 
   const handleDelete = () => {
-    if (!selectedExpenseId) {
+    if (!selectedExpenseId || !selectedExpense) {
       return;
     }
 
-    Alert.alert('Delete Expense', 'Are you sure you want to delete the selected expense?', [
+    Alert.alert('Delete Expense', `Are you sure you want to delete "${selectedExpense.title}"?`, [
       {
         text: 'Cancel',
         style: 'cancel',
