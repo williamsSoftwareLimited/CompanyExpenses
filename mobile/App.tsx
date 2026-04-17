@@ -10,6 +10,7 @@ import {
   calculateRemainingBudget,
   calculateTotalSpent,
   getBudgetStatus,
+  summarizeExpenses,
 } from './src/utils/expenseMath';
 
 const monthlyBudget = 1000;
@@ -131,16 +132,6 @@ export default function App() {
           </Picker>
         </View>
       )}
-      <ExpenseSummaryCard
-        totalBudget={monthlyBudget}
-        totalSpent={summary.totalSpent}
-        budgetStatus={summary.budgetStatus}
-      />
-      <FlatList
-        data={expenses}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <ExpenseItem title={item.title} amount={item.amount} />}
-      />
       <StatusBar style="auto" />
     </SafeAreaView>
   );
