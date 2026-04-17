@@ -29,14 +29,23 @@ export default function App() {
   const budgetStatus = getBudgetStatus(remainingBudget);
 
   const handleCreate = () => {
-    setExpenseList((currentExpenses) => [
-      ...currentExpenses,
-      {
-        id: Date.now().toString(),
-        title: `New Expense ${currentExpenses.length + 1}`,
-        amount: 50,
-      },
-    ]);
+    setExpenseList((currentExpenses) => {
+      const existingIds = new Set(currentExpenses.map((expense) => expense.id));
+      let nextExpenseId = currentExpenses.length + 1;
+
+      while (existingIds.has(nextExpenseId.toString())) {
+        nextExpenseId += 1;
+      }
+
+      return [
+        ...currentExpenses,
+        {
+          id: nextExpenseId.toString(),
+          title: `New Expense ${nextExpenseId}`,
+          amount: 50,
+        },
+      ];
+    });
   };
 
   const handleUpdate = () => {

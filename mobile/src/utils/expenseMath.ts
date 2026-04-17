@@ -15,9 +15,17 @@ export const calculateRemainingBudget = (totalBudget: number, totalSpent: number
 export const getBudgetStatus = (remainingBudget: number): 'on-track' | 'over-budget' =>
   remainingBudget >= 0 ? 'on-track' : 'over-budget';
 
-export const formatCurrency = (amount: number, currencySymbol: CurrencySymbol = '€'): string => {
-  const absoluteAmount = Math.abs(amount).toFixed(2);
-  const formattedAmount = `${currencySymbol}${absoluteAmount}`;
+const currencyFormatConfig: Record<CurrencySymbol, { locale: string; currency: string }> = {
+  '€': { locale: 'en-IE', currency: 'EUR' },
+  '£': { locale: 'en-GB', currency: 'GBP' },
+  $: { locale: 'en-US', currency: 'USD' },
+};
 
-  return amount < 0 ? `-${formattedAmount}` : formattedAmount;
+export const formatCurrency = (amount: number, currencySymbol: CurrencySymbol = '€'): string => {
+  const config = currencyFormatConfig[currencySymbol];
+
+  return new Intl.NumberFormat(config.locale, {
+    style: 'currency',
+    currency: config.currency,
+  }).format(amount);
 };
