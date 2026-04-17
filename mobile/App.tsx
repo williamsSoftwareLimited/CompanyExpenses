@@ -1,8 +1,8 @@
 import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
 import { FlatList, Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
 import { ExpenseItem } from './src/components/ExpenseItem';
+import { SettingsPanel } from './src/components/SettingsPanel';
 import { ExpenseSummaryCard } from './src/components/ExpenseSummaryCard';
 import {
   CurrencySymbol,
@@ -119,18 +119,7 @@ export default function App() {
           />
         </>
       ) : (
-        <View style={styles.settingsCard}>
-          <Text style={styles.settingsLabel}>Currency</Text>
-          <Picker
-            selectedValue={currencySymbol}
-            onValueChange={(itemValue) => setCurrencySymbol(itemValue as CurrencySymbol)}
-            style={styles.currencyPicker}
-          >
-            <Picker.Item label="€" value="€" />
-            <Picker.Item label="£" value="£" />
-            <Picker.Item label="$" value="$" />
-          </Picker>
-        </View>
+        <SettingsPanel currencySymbol={currencySymbol} onCurrencyChange={setCurrencySymbol} />
       )}
       <StatusBar style="auto" />
     </SafeAreaView>
@@ -185,18 +174,6 @@ const styles = StyleSheet.create({
   actionButtonText: {
     color: '#fff',
     fontWeight: '600',
-  },
-  settingsCard: {
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 12,
-  },
-  settingsLabel: {
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  currencyPicker: {
-    marginHorizontal: -8,
   },
   emptyStateText: {
     marginTop: 8,
