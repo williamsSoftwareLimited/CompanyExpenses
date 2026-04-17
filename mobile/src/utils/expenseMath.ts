@@ -27,8 +27,12 @@ export const calculateRemainingBudget = (totalBudget: number, totalSpent: number
 export const getBudgetStatus = (remainingBudget: number): BudgetStatus =>
   remainingBudget >= 0 ? 'on-track' : 'over-budget';
 
-export const formatCurrency = (amount: number): string =>
-  new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(amount);
+export const formatCurrency = (amount: number, currencySymbol: CurrencySymbol = '€'): string => {
+  const absoluteAmount = Math.abs(amount).toFixed(2);
+  const formattedAmount = `${currencySymbol}${absoluteAmount}`;
+
+  return amount < 0 ? `-${formattedAmount}` : formattedAmount;
+};
 
 export const summarizeExpenses = (expenses: Expense[], totalBudget: number): ExpenseSummary => {
   const totalSpent = calculateTotalSpent(expenses);
