@@ -1,8 +1,9 @@
 import {
-  calculateRemainingBudget,
   calculateTotalSpent,
   formatCurrency,
   getBudgetStatus,
+  summarizeExpenses,
+  calculateRemainingBudget,
 } from './expenseMath';
 
 describe('expenseMath', () => {
@@ -38,5 +39,26 @@ describe('expenseMath', () => {
   it('formats selected currencies', () => {
     expect(formatCurrency(123.45, '£')).toBe('£123.45');
     expect(formatCurrency(123.45, '$')).toBe('$123.45');
+  });
+
+  it('summarizes expenses for shared app and MCP usage', () => {
+    expect(
+      summarizeExpenses(
+        [
+          { id: '1', title: 'Lunch', amount: 25 },
+          { id: '2', title: 'Travel', amount: 15.5 },
+        ],
+        100
+      )
+    ).toEqual({
+      totalBudget: 100,
+      totalSpent: 40.5,
+      remainingBudget: 59.5,
+      budgetStatus: 'on-track',
+      expenseCount: 2,
+      formattedTotalBudget: '£100.00',
+      formattedTotalSpent: '£40.50',
+      formattedRemainingBudget: '£59.50',
+    });
   });
 });

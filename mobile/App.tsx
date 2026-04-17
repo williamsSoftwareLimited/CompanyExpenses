@@ -27,6 +27,7 @@ export default function App() {
   const totalSpent = calculateTotalSpent(expenseList);
   const remainingBudget = calculateRemainingBudget(monthlyBudget, totalSpent);
   const budgetStatus = getBudgetStatus(remainingBudget);
+  const summary = summarizeExpenses(expenses, monthlyBudget);
 
   const handleCreate = () => {
     setExpenseList((currentExpenses) => {
@@ -130,6 +131,16 @@ export default function App() {
           </Picker>
         </View>
       )}
+      <ExpenseSummaryCard
+        totalBudget={monthlyBudget}
+        totalSpent={summary.totalSpent}
+        budgetStatus={summary.budgetStatus}
+      />
+      <FlatList
+        data={expenses}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => <ExpenseItem title={item.title} amount={item.amount} />}
+      />
       <StatusBar style="auto" />
     </SafeAreaView>
   );

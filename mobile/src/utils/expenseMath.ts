@@ -5,6 +5,18 @@ export type Expense = {
 };
 
 export type CurrencySymbol = '€' | '£' | '$';
+export type BudgetStatus = 'on-track' | 'over-budget';
+
+export type ExpenseSummary = {
+  totalBudget: number;
+  totalSpent: number;
+  remainingBudget: number;
+  budgetStatus: BudgetStatus;
+  expenseCount: number;
+  formattedTotalBudget: string;
+  formattedTotalSpent: string;
+  formattedRemainingBudget: string;
+};
 
 export const calculateTotalSpent = (expenses: Expense[]): number =>
   expenses.reduce((total, expense) => total + expense.amount, 0);
@@ -12,20 +24,24 @@ export const calculateTotalSpent = (expenses: Expense[]): number =>
 export const calculateRemainingBudget = (totalBudget: number, totalSpent: number): number =>
   totalBudget - totalSpent;
 
-export const getBudgetStatus = (remainingBudget: number): 'on-track' | 'over-budget' =>
+export const getBudgetStatus = (remainingBudget: number): BudgetStatus =>
   remainingBudget >= 0 ? 'on-track' : 'over-budget';
 
-const currencyFormatConfig: Record<CurrencySymbol, { locale: string; currency: string }> = {
-  '€': { locale: 'en-IE', currency: 'EUR' },
-  '£': { locale: 'en-GB', currency: 'GBP' },
-  $: { locale: 'en-US', currency: 'USD' },
-};
+export const formatCurrency = (amount: number): string =>
+  new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(amount);
 
-export const formatCurrency = (amount: number, currencySymbol: CurrencySymbol = '€'): string => {
-  const config = currencyFormatConfig[currencySymbol];
+export const summarizeExpenses = (expenses: Expense[], totalBudget: number): ExpenseSummary => {
+  const totalSpent = calculateTotalSpent(expenses);
+  const remainingBudget = calculateRemainingBudget(totalBudget, totalSpent);
 
-  return new Intl.NumberFormat(config.locale, {
-    style: 'currency',
-    currency: config.currency,
-  }).format(amount);
+  return {
+    totalBudget,
+    totalSpent,
+    remainingBudget,
+    budgetStatus: getBudgetStatus(remainingBudget),
+    expenseCount: expenses.length,
+    formattedTotalBudget: formatCurrency(totalBudget),
+    formattedTotalSpent: formatCurrency(totalSpent),
+    formattedRemainingBudget: formatCurrency(remainingBudget),
+  };
 };
