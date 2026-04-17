@@ -23,7 +23,6 @@ import {
   getBudgetStatus,
 } from './src/utils/expenseMath';
 
-const monthlyBudget = 1000;
 const expenses: Expense[] = [
   { id: '1', title: 'Team Lunch', amount: 120 },
   { id: '2', title: 'Taxi', amount: 65 },
@@ -32,6 +31,7 @@ const expenses: Expense[] = [
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'main' | 'settings'>('main');
+  const [monthlyBudget, setMonthlyBudget] = useState(1000);
   const [expenseList, setExpenseList] = useState<Expense[]>(expenses);
   const [currencySymbol, setCurrencySymbol] = useState<CurrencySymbol>('€');
   const [modalMode, setModalMode] = useState<'create' | 'update' | null>(null);
@@ -176,6 +176,11 @@ export default function App() {
     ]);
   };
 
+  const handleResetSpent = () => {
+    setExpenseList([]);
+    setSelectedExpenseId(null);
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>Company Expenses</Text>
@@ -281,7 +286,14 @@ export default function App() {
           </Modal>
         </>
       ) : (
-        <SettingsPanel currencySymbol={currencySymbol} onCurrencyChange={setCurrencySymbol} />
+        <SettingsPanel
+          currencySymbol={currencySymbol}
+          onCurrencyChange={setCurrencySymbol}
+          budget={monthlyBudget}
+          onBudgetChange={setMonthlyBudget}
+          onResetSpent={handleResetSpent}
+          canResetSpent={expenseList.length > 0}
+        />
       )}
       <StatusBar style="auto" />
     </SafeAreaView>
