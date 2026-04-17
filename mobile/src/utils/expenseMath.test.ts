@@ -31,7 +31,12 @@ describe('expenseMath', () => {
     expect(getBudgetStatus(-1)).toBe('over-budget');
   });
 
-  it('formats GBP currency', () => {
-    expect(formatCurrency(123.45)).toBe('£123.45');
+  it('formats EUR by default', () => {
+    expect(formatCurrency(123.45)).toBe('€123.45');
+  });
+
+  it('formats selected currencies', () => {
+    expect(formatCurrency(123.45, '£')).toBe('£123.45');
+    expect(formatCurrency(123.45, '$')).toBe('$123.45');
   });
 });

@@ -1,16 +1,17 @@
 import { StyleSheet, Text, View } from 'react-native';
-import { formatCurrency } from '../utils/expenseMath';
+import { CurrencySymbol, formatCurrency } from '../utils/expenseMath';
 
 type ExpenseItemProps = {
   title: string;
   amount: number;
+  currencySymbol: CurrencySymbol;
 };
 
-export const ExpenseItem = ({ title, amount }: ExpenseItemProps) => {
+export const ExpenseItem = ({ title, amount, currencySymbol }: ExpenseItemProps) => {
   return (
     <View style={styles.item}>
       <Text style={styles.title}>{title}</Text>
-      <Text>{formatCurrency(amount)}</Text>
+      <Text>{formatCurrency(amount, currencySymbol)}</Text>
     </View>
   );
 };
