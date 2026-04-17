@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
-import { FlatList, Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Modal, Pressable, SafeAreaView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { ExpenseItem } from './src/components/ExpenseItem';
 import { SettingsPanel } from './src/components/SettingsPanel';
 import { ExpenseSummaryCard } from './src/components/ExpenseSummaryCard';
@@ -24,13 +24,30 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<'main' | 'settings'>('main');
   const [expenseList, setExpenseList] = useState<Expense[]>(expenses);
   const [currencySymbol, setCurrencySymbol] = useState<CurrencySymbol>('€');
+  const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
+  const [newExpenseTitle, setNewExpenseTitle] = useState('');
+  const [newExpenseAmount, setNewExpenseAmount] = useState('');
 
   const totalSpent = calculateTotalSpent(expenseList);
   const remainingBudget = calculateRemainingBudget(monthlyBudget, totalSpent);
   const budgetStatus = getBudgetStatus(remainingBudget);
   const summary = summarizeExpenses(expenses, monthlyBudget);
 
+  const closeCreateModal = () => {
+    setIsCreateModalVisible(false);
+    setNewExpenseTitle('');
+    setNewExpenseAmount('');
+  };
+
   const handleCreate = () => {
+    const trimmedTitle = newExpenseTitle.trim();
+    const parsedAmount = Number.parseFloat(newExpenseAmount);
+    const isAmountValid = Number.isFinite(parsedAmount) && parsedAmount > 0;
+
+    if (!trimmedTitle || !isAmountValid) {
+      return;
+    }
+
     setExpenseList((currentExpenses) => {
       const existingIds = new Set(currentExpenses.map((expense) => expense.id));
       let nextExpenseId = currentExpenses.length + 1;
@@ -43,11 +60,13 @@ export default function App() {
         ...currentExpenses,
         {
           id: nextExpenseId.toString(),
-          title: `New Expense ${nextExpenseId}`,
-          amount: 50,
+          title: trimmedTitle,
+          amount: parsedAmount,
         },
       ];
     });
+
+    closeCreateModal();
   };
 
   const handleUpdate = () => {
@@ -71,6 +90,8 @@ export default function App() {
   const handleDelete = () => {
     setExpenseList((currentExpenses) => currentExpenses.slice(0, -1));
   };
+
+  const canCreateExpense = newExpenseTitle.trim().length > 0 && Number.parseFloat(newExpenseAmount) > 0;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -99,7 +120,7 @@ export default function App() {
             currencySymbol={currencySymbol}
           />
           <View style={styles.actionContainer}>
-            <Pressable style={styles.actionButton} onPress={handleCreate}>
+            <Pressable style={styles.actionButton} onPress={() => setIsCreateModalVisible(true)}>
               <Text style={styles.actionButtonText}>Create</Text>
             </Pressable>
             <Pressable style={styles.actionButton} onPress={handleUpdate}>
@@ -117,6 +138,43 @@ export default function App() {
             )}
             ListEmptyComponent={<Text style={styles.emptyStateText}>No expenses available.</Text>}
           />
+          <Modal
+            visible={isCreateModalVisible}
+            transparent
+            animationType="fade"
+            onRequestClose={closeCreateModal}
+          >
+            <View style={styles.modalOverlay}>
+              <View style={styles.modalCard}>
+                <Text style={styles.modalTitle}>Create Expense</Text>
+                <TextInput
+                  value={newExpenseTitle}
+                  onChangeText={setNewExpenseTitle}
+                  placeholder="Title"
+                  style={styles.modalInput}
+                />
+                <TextInput
+                  value={newExpenseAmount}
+                  onChangeText={setNewExpenseAmount}
+                  placeholder="Amount"
+                  keyboardType="decimal-pad"
+                  style={styles.modalInput}
+                />
+                <View style={styles.modalActions}>
+                  <Pressable
+                    style={[styles.actionButton, styles.modalActionButton, !canCreateExpense && styles.disabledActionButton]}
+                    onPress={handleCreate}
+                    disabled={!canCreateExpense}
+                  >
+                    <Text style={styles.actionButtonText}>Create</Text>
+                  </Pressable>
+                  <Pressable style={[styles.actionButton, styles.modalActionButton, styles.cancelButton]} onPress={closeCreateModal}>
+                    <Text style={styles.actionButtonText}>Cancel</Text>
+                  </Pressable>
+                </View>
+              </View>
+            </View>
+          </Modal>
         </>
       ) : (
         <SettingsPanel currencySymbol={currencySymbol} onCurrencyChange={setCurrencySymbol} />
@@ -178,5 +236,41 @@ const styles = StyleSheet.create({
   emptyStateText: {
     marginTop: 8,
     color: '#707070',
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
+    padding: 16,
+  },
+  modalCard: {
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 16,
+    gap: 10,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  modalInput: {
+    borderWidth: 1,
+    borderColor: '#d0d0d0',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  modalActionButton: {
+    flex: 1,
+  },
+  cancelButton: {
+    backgroundColor: '#6f6f6f',
+  },
+  disabledActionButton: {
+    backgroundColor: '#a6b8e8',
   },
 });
