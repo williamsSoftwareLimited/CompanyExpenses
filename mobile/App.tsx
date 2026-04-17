@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { FlatList, Modal, Pressable, SafeAreaView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { ExpenseItem } from './src/components/ExpenseItem';
 import { SettingsPanel } from './src/components/SettingsPanel';
@@ -32,6 +32,15 @@ export default function App() {
   const remainingBudget = calculateRemainingBudget(monthlyBudget, totalSpent);
   const budgetStatus = getBudgetStatus(remainingBudget);
   const summary = summarizeExpenses(expenses, monthlyBudget);
+  const parsedExpenseAmount = useMemo(() => {
+    const parsedValue = Number.parseFloat(newExpenseAmount);
+    return Number.isFinite(parsedValue) ? parsedValue : null;
+  }, [newExpenseAmount]);
+  const isExpenseAmountValid = parsedExpenseAmount !== null && parsedExpenseAmount > 0;
+  const isCreateDisabled = useMemo(
+    () => !newExpenseTitle.trim() || !isExpenseAmountValid,
+    [newExpenseTitle, isExpenseAmountValid]
+  );
 
   const closeCreateModal = () => {
     setIsCreateModalVisible(false);
@@ -41,10 +50,8 @@ export default function App() {
 
   const handleCreate = () => {
     const trimmedTitle = newExpenseTitle.trim();
-    const parsedAmount = Number.parseFloat(newExpenseAmount);
-    const isAmountValid = Number.isFinite(parsedAmount) && parsedAmount > 0;
 
-    if (!trimmedTitle || !isAmountValid) {
+    if (!trimmedTitle || !isExpenseAmountValid) {
       return;
     }
 
@@ -61,7 +68,7 @@ export default function App() {
         {
           id: nextExpenseId.toString(),
           title: trimmedTitle,
-          amount: parsedAmount,
+          amount: parsedExpenseAmount,
         },
       ];
     });
@@ -90,8 +97,6 @@ export default function App() {
   const handleDelete = () => {
     setExpenseList((currentExpenses) => currentExpenses.slice(0, -1));
   };
-
-  const canCreateExpense = newExpenseTitle.trim().length > 0 && Number.parseFloat(newExpenseAmount) > 0;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -151,6 +156,7 @@ export default function App() {
                   value={newExpenseTitle}
                   onChangeText={setNewExpenseTitle}
                   placeholder="Title"
+                  accessibilityLabel="Expense title"
                   style={styles.modalInput}
                 />
                 <TextInput
@@ -158,17 +164,28 @@ export default function App() {
                   onChangeText={setNewExpenseAmount}
                   placeholder="Amount"
                   keyboardType="decimal-pad"
+                  accessibilityLabel="Expense amount"
                   style={styles.modalInput}
                 />
                 <View style={styles.modalActions}>
                   <Pressable
-                    style={[styles.actionButton, styles.modalActionButton, !canCreateExpense && styles.disabledActionButton]}
+                    style={[
+                      styles.actionButton,
+                      styles.modalActionButton,
+                      isCreateDisabled && styles.disabledActionButton,
+                    ]}
                     onPress={handleCreate}
-                    disabled={!canCreateExpense}
+                    disabled={isCreateDisabled}
+                    accessibilityLabel="Create expense"
+                    accessibilityHint="Creates a new expense with the entered title and amount"
                   >
                     <Text style={styles.actionButtonText}>Create</Text>
                   </Pressable>
-                  <Pressable style={[styles.actionButton, styles.modalActionButton, styles.cancelButton]} onPress={closeCreateModal}>
+                  <Pressable
+                    style={[styles.actionButton, styles.modalActionButton, styles.cancelButton]}
+                    onPress={closeCreateModal}
+                    accessibilityLabel="Cancel expense creation"
+                  >
                     <Text style={styles.actionButtonText}>Cancel</Text>
                   </Pressable>
                 </View>
