@@ -9,9 +9,25 @@ import {
 describe('expenseMath', () => {
   it('calculates total spent from expenses', () => {
     expect(
-      calculateTotalSpent([
-        { id: '1', title: 'Lunch', amount: 25 },
-        { id: '2', title: 'Travel', amount: 15.5 },
+        calculateTotalSpent([
+        {
+          id: '1',
+          title: 'Lunch',
+          amount: 25,
+          description: 'Team lunch',
+          createdDate: '2026-01-01T00:00:00.000Z',
+          updatedDate: '2026-01-01T00:00:00.000Z',
+          photoBlob: null,
+        },
+        {
+          id: '2',
+          title: 'Travel',
+          amount: 15.5,
+          description: 'Taxi ticket',
+          createdDate: '2026-01-02T00:00:00.000Z',
+          updatedDate: '2026-01-02T00:00:00.000Z',
+          photoBlob: null,
+        },
       ])
     ).toBe(40.5);
   });
@@ -45,8 +61,24 @@ describe('expenseMath', () => {
     expect(
       summarizeExpenses(
         [
-          { id: '1', title: 'Lunch', amount: 25 },
-          { id: '2', title: 'Travel', amount: 15.5 },
+          {
+            id: '1',
+            title: 'Lunch',
+            amount: 25,
+            description: 'Team lunch',
+            createdDate: '2026-01-01T00:00:00.000Z',
+            updatedDate: '2026-01-01T00:00:00.000Z',
+            photoBlob: null,
+          },
+          {
+            id: '2',
+            title: 'Travel',
+            amount: 15.5,
+            description: 'Taxi ticket',
+            createdDate: '2026-01-02T00:00:00.000Z',
+            updatedDate: '2026-01-02T00:00:00.000Z',
+            photoBlob: null,
+          },
         ],
         100
       )

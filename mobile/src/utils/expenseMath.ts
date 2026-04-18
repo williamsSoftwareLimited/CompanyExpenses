@@ -2,6 +2,10 @@ export type Expense = {
   id: string;
   title: string;
   amount: number;
+  description: string;
+  createdDate: string;
+  updatedDate: string;
+  photoBlob: string | null;
 };
 
 export type CurrencySymbol = '€' | '£' | '$';
