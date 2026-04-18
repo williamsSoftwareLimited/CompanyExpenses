@@ -1,10 +1,14 @@
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useMemo, useState } from 'react';
+import * as ImagePicker from 'expo-image-picker';
+import { recognizeText } from 'expo-ocr-kit';
 import {
   AccessibilityInfo,
+  ActivityIndicator,
   Alert,
   FlatList,
   GestureResponderEvent,
+  Image,
   Keyboard,
   KeyboardAvoidingView,
   Modal,
@@ -35,7 +39,7 @@ const expenses: Expense[] = [
     description: 'Lunch with client success team.',
     createdDate: '2026-01-05T09:00:00.000Z',
     updatedDate: '2026-01-05T09:00:00.000Z',
-    photoBlob: null,
+    receipt: null,
   },
   {
     id: '2',
@@ -44,7 +48,7 @@ const expenses: Expense[] = [
     description: 'Airport transfer for partner meeting.',
     createdDate: '2026-01-09T08:30:00.000Z',
     updatedDate: '2026-01-09T08:30:00.000Z',
-    photoBlob: null,
+    receipt: null,
   },
   {
     id: '3',
@@ -53,9 +57,57 @@ const expenses: Expense[] = [
     description: 'Office stationery refill.',
     createdDate: '2026-01-11T14:15:00.000Z',
     updatedDate: '2026-01-11T14:15:00.000Z',
-    photoBlob: null,
+    receipt: null,
   },
 ];
+
+type ParsedReceiptData = {
+  title?: string;
+  amount?: string;
+  description?: string;
+};
+
+const parseReceiptData = (rawText: string): ParsedReceiptData => {
+  const lines = rawText
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  const title = lines.find(
+    (line) =>
+      /[a-z]/i.test(line) &&
+      !/total|tax|subtotal|vat|invoice|receipt no|amount/i.test(line) &&
+      line.length >= 3 &&
+      line.length <= 60
+  );
+
+  const labeledAmountMatch = rawText.match(
+    /(?:grand\s*total|total\s*due|amount\s*due|total)\D*(\d+(?:[.,]\d{2})?)/i
+  );
+
+  let strongestAmount: number | null = null;
+  const numericRegex = /(?:€|£|\$)?\s*(\d+(?:[.,]\d{2}))/g;
+  for (const match of rawText.matchAll(numericRegex)) {
+    const parsedAmount = Number.parseFloat((match[1] ?? '').replace(',', '.'));
+    if (Number.isFinite(parsedAmount) && (strongestAmount === null || parsedAmount > strongestAmount)) {
+      strongestAmount = parsedAmount;
+    }
+  }
+
+  const labeledAmount = labeledAmountMatch?.[1]
+    ? Number.parseFloat(labeledAmountMatch[1].replace(',', '.'))
+    : null;
+
+  const resolvedAmount = Number.isFinite(labeledAmount) ? labeledAmount : strongestAmount;
+
+  const description = lines.slice(0, 4).join(' ').slice(0, 160);
+
+  return {
+    title,
+    amount: resolvedAmount !== null ? resolvedAmount.toString() : undefined,
+    description: description || undefined,
+  };
+};
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'main' | 'settings'>('main');
@@ -66,9 +118,10 @@ export default function App() {
   const [newExpenseTitle, setNewExpenseTitle] = useState('');
   const [newExpenseAmount, setNewExpenseAmount] = useState('');
   const [newExpenseDescription, setNewExpenseDescription] = useState('');
-  const [newExpensePhotoBlob, setNewExpensePhotoBlob] = useState('');
+  const [newExpenseReceipt, setNewExpenseReceipt] = useState('');
   const [selectedExpenseId, setSelectedExpenseId] = useState<string | null>(null);
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+  const [isProcessingReceipt, setIsProcessingReceipt] = useState(false);
 
   const totalSpent = calculateTotalSpent(expenseList);
   const remainingBudget = calculateRemainingBudget(monthlyBudget, totalSpent);
@@ -104,7 +157,8 @@ export default function App() {
     setNewExpenseTitle('');
     setNewExpenseAmount('');
     setNewExpenseDescription('');
-    setNewExpensePhotoBlob('');
+    setNewExpenseReceipt('');
+    setIsProcessingReceipt(false);
   };
 
   const openCreateModal = () => {
@@ -112,7 +166,8 @@ export default function App() {
     setNewExpenseTitle('');
     setNewExpenseAmount('');
     setNewExpenseDescription('');
-    setNewExpensePhotoBlob('');
+    setNewExpenseReceipt('');
+    setIsProcessingReceipt(false);
   };
 
   const openUpdateModal = () => {
@@ -124,13 +179,92 @@ export default function App() {
     setNewExpenseTitle(selectedExpense.title);
     setNewExpenseAmount(selectedExpense.amount.toString());
     setNewExpenseDescription(selectedExpense.description);
-    setNewExpensePhotoBlob(selectedExpense.photoBlob ?? '');
+    setNewExpenseReceipt(selectedExpense.receipt ?? '');
+    setIsProcessingReceipt(false);
+  };
+
+  const handleReceiptOcr = async (receiptUri: string) => {
+    setIsProcessingReceipt(true);
+
+    try {
+      const ocrResult = await recognizeText(receiptUri);
+      const recognizedText = ocrResult?.text?.trim();
+
+      if (!recognizedText) {
+        Alert.alert('OCR', 'No text was recognized from the selected receipt image.');
+        return;
+      }
+
+      const parsedReceiptData = parseReceiptData(recognizedText);
+
+      if (parsedReceiptData.title && !newExpenseTitle.trim()) {
+        setNewExpenseTitle(parsedReceiptData.title);
+      }
+
+      if (parsedReceiptData.amount && !newExpenseAmount.trim()) {
+        setNewExpenseAmount(parsedReceiptData.amount);
+      }
+
+      if (parsedReceiptData.description && !newExpenseDescription.trim()) {
+        setNewExpenseDescription(parsedReceiptData.description);
+      }
+    } catch {
+      Alert.alert(
+        'OCR unavailable',
+        'OCR could not be completed on this build. Receipt image was still attached successfully.'
+      );
+    } finally {
+      setIsProcessingReceipt(false);
+    }
+  };
+
+  const handleSelectReceipt = async (source: 'camera' | 'library') => {
+    const permissionsResponse =
+      source === 'camera'
+        ? await ImagePicker.requestCameraPermissionsAsync()
+        : await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (!permissionsResponse.granted) {
+      Alert.alert(
+        'Permission needed',
+        source === 'camera'
+          ? 'Camera access is needed to take a receipt photo.'
+          : 'Photo library access is needed to select a receipt image.'
+      );
+      return;
+    }
+
+    const pickerResult =
+      source === 'camera'
+        ? await ImagePicker.launchCameraAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            quality: 0.8,
+          })
+        : await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            quality: 0.8,
+          });
+
+    if (pickerResult.canceled) {
+      return;
+    }
+
+    const receiptUri = pickerResult.assets?.[0]?.uri;
+
+    if (!receiptUri) {
+      return;
+    }
+
+    setNewExpenseReceipt(receiptUri);
+    await handleReceiptOcr(receiptUri);
   };
 
   const handleSubmitExpense = () => {
     const trimmedTitle = newExpenseTitle.trim();
     const trimmedDescription = newExpenseDescription.trim();
-    const trimmedPhotoBlob = newExpensePhotoBlob.trim();
+    const trimmedReceipt = newExpenseReceipt.trim();
 
     if (!trimmedTitle || !isExpenseAmountValid) {
       return;
@@ -150,7 +284,7 @@ export default function App() {
                 amount: parsedExpenseAmount,
                 description: trimmedDescription,
                 updatedDate: new Date().toISOString(),
-                photoBlob: trimmedPhotoBlob || null,
+                receipt: trimmedReceipt || null,
               }
             : expense
         )
@@ -176,7 +310,7 @@ export default function App() {
           description: trimmedDescription,
           createdDate: new Date().toISOString(),
           updatedDate: new Date().toISOString(),
-          photoBlob: trimmedPhotoBlob || null,
+          receipt: trimmedReceipt || null,
         },
       ];
     });
@@ -265,7 +399,9 @@ export default function App() {
           style={[styles.tabButton, activeTab === 'settings' && styles.activeTabButton]}
           onPress={() => setActiveTab('settings')}
         >
-          <Text style={[styles.tabText, activeTab === 'settings' && styles.activeTabText]}>Settings</Text>
+          <Text style={[styles.tabText, activeTab === 'settings' && styles.activeTabText]}>
+            Settings
+          </Text>
         </Pressable>
       </View>
 
@@ -306,7 +442,7 @@ export default function App() {
                 description={item.description}
                 createdDate={item.createdDate}
                 updatedDate={item.updatedDate}
-                photoBlob={item.photoBlob}
+                receipt={item.receipt}
                 currencySymbol={currencySymbol}
                 isSelected={item.id === selectedExpenseId}
                 onPress={() => handleSelectExpense(item.id)}
@@ -327,70 +463,112 @@ export default function App() {
                 accessibilityLabel="Modal background"
               >
                 <Pressable style={styles.modalCard} onPress={handleModalCardPress}>
-                <Text style={styles.modalTitle}>{modalTitle}</Text>
-                <TextInput
-                  value={newExpenseTitle}
-                  onChangeText={setNewExpenseTitle}
-                  placeholder="Title"
-                  accessibilityLabel="Expense title"
-                  style={styles.modalInput}
-                />
-                <TextInput
-                  value={newExpenseAmount}
-                  onChangeText={setNewExpenseAmount}
-                  placeholder="Amount"
-                  keyboardType="decimal-pad"
-                  accessibilityLabel="Expense amount"
-                  style={styles.modalInput}
-                />
-                <TextInput
-                  value={newExpenseDescription}
-                  onChangeText={setNewExpenseDescription}
-                  placeholder="Description"
-                  accessibilityLabel="Expense description"
-                  style={styles.modalInput}
-                  multiline
-                />
-                <TextInput
-                  value={newExpensePhotoBlob}
-                  onChangeText={setNewExpensePhotoBlob}
-                  placeholder="Photo blob"
-                  accessibilityLabel="Expense photo blob"
-                  style={styles.modalInput}
-                />
-                {isKeyboardVisible ? (
-                  <Pressable
-                    style={styles.keyboardDismissButton}
-                    onPress={Keyboard.dismiss}
-                    accessibilityRole="button"
-                    accessibilityLabel="Hide keyboard"
-                    accessibilityHint="Dismisses the on-screen keyboard"
-                  >
-                    <Text style={styles.keyboardDismissButtonText}>Hide keyboard</Text>
-                  </Pressable>
-                ) : null}
-                <View style={styles.modalActions}>
-                  <Pressable
-                    style={[
-                      styles.actionButton,
-                      styles.modalActionButton,
-                      isSubmitDisabled && styles.disabledActionButton,
-                    ]}
-                    onPress={handleSubmitExpense}
-                    disabled={isSubmitDisabled}
-                    accessibilityLabel={`${submitButtonLabel} expense`}
-                    accessibilityHint={submitButtonAccessibilityHint}
-                  >
-                    <Text style={styles.actionButtonText}>{submitButtonLabel}</Text>
-                  </Pressable>
-                  <Pressable
-                    style={[styles.actionButton, styles.modalActionButton, styles.cancelButton]}
-                    onPress={closeModal}
-                    accessibilityLabel={cancelButtonAccessibilityLabel}
-                  >
-                    <Text style={styles.actionButtonText}>Cancel</Text>
-                  </Pressable>
-                </View>
+                  <Text style={styles.modalTitle}>{modalTitle}</Text>
+                  <TextInput
+                    value={newExpenseTitle}
+                    onChangeText={setNewExpenseTitle}
+                    placeholder="Title"
+                    accessibilityLabel="Expense title"
+                    style={styles.modalInput}
+                  />
+                  <TextInput
+                    value={newExpenseAmount}
+                    onChangeText={setNewExpenseAmount}
+                    placeholder="Amount"
+                    keyboardType="decimal-pad"
+                    accessibilityLabel="Expense amount"
+                    style={styles.modalInput}
+                  />
+                  <TextInput
+                    value={newExpenseDescription}
+                    onChangeText={setNewExpenseDescription}
+                    placeholder="Description"
+                    accessibilityLabel="Expense description"
+                    style={styles.modalInput}
+                    multiline
+                  />
+                  <View style={styles.receiptSection}>
+                    <Text style={styles.receiptSectionTitle}>Receipt</Text>
+                    <View style={styles.receiptHolder}>
+                      {newExpenseReceipt ? (
+                        <Image
+                          source={{ uri: newExpenseReceipt }}
+                          style={styles.receiptImage}
+                          accessibilityLabel="Selected receipt image"
+                        />
+                      ) : (
+                        <Text style={styles.receiptPlaceholderText}>No receipt selected</Text>
+                      )}
+                    </View>
+                    {isProcessingReceipt ? (
+                      <View style={styles.ocrStatus}>
+                        <ActivityIndicator size="small" color="#2f6bed" />
+                        <Text style={styles.ocrStatusText}>Reading receipt with OCR…</Text>
+                      </View>
+                    ) : null}
+                    <View style={styles.receiptActions}>
+                      <Pressable
+                        style={[styles.actionButton, styles.receiptActionButton]}
+                        onPress={() => {
+                          void handleSelectReceipt('camera');
+                        }}
+                        accessibilityLabel="Take receipt photo"
+                      >
+                        <Text style={styles.actionButtonText}>Take photo</Text>
+                      </Pressable>
+                      <Pressable
+                        style={[styles.actionButton, styles.receiptActionButton]}
+                        onPress={() => {
+                          void handleSelectReceipt('library');
+                        }}
+                        accessibilityLabel="Choose receipt from photos"
+                      >
+                        <Text style={styles.actionButtonText}>Choose photo</Text>
+                      </Pressable>
+                      {newExpenseReceipt ? (
+                        <Pressable
+                          style={[styles.actionButton, styles.receiptActionButton, styles.clearReceiptButton]}
+                          onPress={() => setNewExpenseReceipt('')}
+                          accessibilityLabel="Remove selected receipt"
+                        >
+                          <Text style={styles.actionButtonText}>Clear</Text>
+                        </Pressable>
+                      ) : null}
+                    </View>
+                  </View>
+                  {isKeyboardVisible ? (
+                    <Pressable
+                      style={styles.keyboardDismissButton}
+                      onPress={Keyboard.dismiss}
+                      accessibilityRole="button"
+                      accessibilityLabel="Hide keyboard"
+                      accessibilityHint="Dismisses the on-screen keyboard"
+                    >
+                      <Text style={styles.keyboardDismissButtonText}>Hide keyboard</Text>
+                    </Pressable>
+                  ) : null}
+                  <View style={styles.modalActions}>
+                    <Pressable
+                      style={[
+                        styles.actionButton,
+                        styles.modalActionButton,
+                        isSubmitDisabled && styles.disabledActionButton,
+                      ]}
+                      onPress={handleSubmitExpense}
+                      disabled={isSubmitDisabled}
+                      accessibilityLabel={`${submitButtonLabel} expense`}
+                      accessibilityHint={submitButtonAccessibilityHint}
+                    >
+                      <Text style={styles.actionButtonText}>{submitButtonLabel}</Text>
+                    </Pressable>
+                    <Pressable
+                      style={[styles.actionButton, styles.modalActionButton, styles.cancelButton]}
+                      onPress={closeModal}
+                      accessibilityLabel={cancelButtonAccessibilityLabel}
+                    >
+                      <Text style={styles.actionButtonText}>Cancel</Text>
+                    </Pressable>
+                  </View>
                 </Pressable>
               </Pressable>
             </KeyboardAvoidingView>
@@ -490,6 +668,49 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
+  },
+  receiptSection: {
+    gap: 8,
+  },
+  receiptSectionTitle: {
+    fontWeight: '600',
+  },
+  receiptHolder: {
+    borderWidth: 1,
+    borderColor: '#d0d0d0',
+    borderRadius: 8,
+    minHeight: 180,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f8f8f8',
+    overflow: 'hidden',
+  },
+  receiptImage: {
+    width: '100%',
+    height: 180,
+    resizeMode: 'cover',
+  },
+  receiptPlaceholderText: {
+    color: '#606060',
+  },
+  receiptActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  receiptActionButton: {
+    flex: 1,
+  },
+  clearReceiptButton: {
+    backgroundColor: '#6f6f6f',
+  },
+  ocrStatus: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  ocrStatusText: {
+    color: '#2f6bed',
+    fontWeight: '500',
   },
   keyboardDismissButton: {
     alignSelf: 'flex-end',

@@ -16,7 +16,7 @@ const expenseSchema = z.object({
   description: z.string(),
   createdDate: z.string(),
   updatedDate: z.string(),
-  photoBlob: z.string().nullable(),
+  receipt: z.string().nullable(),
 });
 
 server.registerTool(

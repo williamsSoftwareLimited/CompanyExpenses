@@ -17,7 +17,7 @@ describe('expenseMath', () => {
           description: 'Team lunch',
           createdDate: '2026-01-01T00:00:00.000Z',
           updatedDate: '2026-01-01T00:00:00.000Z',
-          photoBlob: null,
+          receipt: null,
         },
         {
           id: '2',
@@ -26,7 +26,7 @@ describe('expenseMath', () => {
           description: 'Taxi ticket',
           createdDate: '2026-01-02T00:00:00.000Z',
           updatedDate: '2026-01-02T00:00:00.000Z',
-          photoBlob: null,
+          receipt: null,
         },
       ])
     ).toBe(40.5);
@@ -68,7 +68,7 @@ describe('expenseMath', () => {
             description: 'Team lunch',
             createdDate: '2026-01-01T00:00:00.000Z',
             updatedDate: '2026-01-01T00:00:00.000Z',
-            photoBlob: null,
+            receipt: null,
           },
           {
             id: '2',
@@ -77,7 +77,7 @@ describe('expenseMath', () => {
             description: 'Taxi ticket',
             createdDate: '2026-01-02T00:00:00.000Z',
             updatedDate: '2026-01-02T00:00:00.000Z',
-            photoBlob: null,
+            receipt: null,
           },
         ],
         100
