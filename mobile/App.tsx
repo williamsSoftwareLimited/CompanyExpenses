@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   AccessibilityInfo,
   Alert,
@@ -67,6 +67,7 @@ export default function App() {
   const [newExpenseDescription, setNewExpenseDescription] = useState('');
   const [newExpensePhotoBlob, setNewExpensePhotoBlob] = useState('');
   const [selectedExpenseId, setSelectedExpenseId] = useState<string | null>(null);
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
   const totalSpent = calculateTotalSpent(expenseList);
   const remainingBudget = calculateRemainingBudget(monthlyBudget, totalSpent);
@@ -225,6 +226,25 @@ export default function App() {
     setSelectedExpenseId(null);
   };
 
+  useEffect(() => {
+    if (!isModalVisible) {
+      setIsKeyboardVisible(false);
+      return;
+    }
+
+    const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
+      setIsKeyboardVisible(true);
+    });
+    const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
+      setIsKeyboardVisible(false);
+    });
+
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+    };
+  }, [isModalVisible]);
+
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>Company Expenses</Text>
@@ -294,8 +314,13 @@ export default function App() {
               behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
               keyboardVerticalOffset={Platform.OS === 'ios' ? 24 : 0}
             >
-              <Pressable style={styles.modalOverlay} onPress={Keyboard.dismiss}>
-                <Pressable style={styles.modalCard} onPress={() => {}}>
+              <Pressable
+                style={styles.modalOverlay}
+                onPress={Keyboard.dismiss}
+                accessibilityRole="button"
+                accessibilityLabel="Tap to dismiss keyboard"
+              >
+                <View style={styles.modalCard} onStartShouldSetResponder={() => true}>
                 <Text style={styles.modalTitle}>{modalTitle}</Text>
                 <TextInput
                   value={newExpenseTitle}
@@ -327,13 +352,17 @@ export default function App() {
                   accessibilityLabel="Expense photo blob"
                   style={styles.modalInput}
                 />
-                <Pressable
-                  style={styles.keyboardDismissButton}
-                  onPress={Keyboard.dismiss}
-                  accessibilityLabel="Hide keyboard"
-                >
-                  <Text style={styles.keyboardDismissButtonText}>Hide keyboard</Text>
-                </Pressable>
+                {isKeyboardVisible ? (
+                  <Pressable
+                    style={styles.keyboardDismissButton}
+                    onPress={Keyboard.dismiss}
+                    accessibilityRole="button"
+                    accessibilityLabel="Hide keyboard"
+                    accessibilityHint="Dismisses the on-screen keyboard"
+                  >
+                    <Text style={styles.keyboardDismissButtonText}>Hide keyboard</Text>
+                  </Pressable>
+                ) : null}
                 <View style={styles.modalActions}>
                   <Pressable
                     style={[
@@ -356,7 +385,7 @@ export default function App() {
                     <Text style={styles.actionButtonText}>Cancel</Text>
                   </Pressable>
                 </View>
-                </Pressable>
+                </View>
               </Pressable>
             </KeyboardAvoidingView>
           </Modal>
