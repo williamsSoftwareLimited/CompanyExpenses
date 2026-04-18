@@ -1,10 +1,14 @@
 import { StatusBar } from 'expo-status-bar';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   AccessibilityInfo,
   Alert,
   FlatList,
+  GestureResponderEvent,
+  Keyboard,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
   SafeAreaView,
   StyleSheet,
@@ -64,6 +68,7 @@ export default function App() {
   const [newExpenseDescription, setNewExpenseDescription] = useState('');
   const [newExpensePhotoBlob, setNewExpensePhotoBlob] = useState('');
   const [selectedExpenseId, setSelectedExpenseId] = useState<string | null>(null);
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
   const totalSpent = calculateTotalSpent(expenseList);
   const remainingBudget = calculateRemainingBudget(monthlyBudget, totalSpent);
@@ -222,6 +227,30 @@ export default function App() {
     setSelectedExpenseId(null);
   };
 
+  useEffect(() => {
+    const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
+      if (isModalVisible) {
+        setIsKeyboardVisible(true);
+      }
+    });
+    const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
+      setIsKeyboardVisible(false);
+    });
+
+    if (!isModalVisible) {
+      setIsKeyboardVisible(false);
+    }
+
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+    };
+  }, [isModalVisible]);
+
+  const handleModalCardPress = (event: GestureResponderEvent) => {
+    event.stopPropagation();
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>Company Expenses</Text>
@@ -286,8 +315,18 @@ export default function App() {
             ListEmptyComponent={<Text style={styles.emptyStateText}>No expenses available.</Text>}
           />
           <Modal visible={isModalVisible} transparent animationType="fade" onRequestClose={closeModal}>
-            <View style={styles.modalOverlay}>
-              <View style={styles.modalCard}>
+            <KeyboardAvoidingView
+              style={styles.modalKeyboardContainer}
+              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+              keyboardVerticalOffset={Platform.OS === 'ios' ? 24 : 0}
+            >
+              <Pressable
+                style={styles.modalOverlay}
+                onPress={Keyboard.dismiss}
+                accessibilityRole="button"
+                accessibilityLabel="Modal background"
+              >
+                <Pressable style={styles.modalCard} onPress={handleModalCardPress}>
                 <Text style={styles.modalTitle}>{modalTitle}</Text>
                 <TextInput
                   value={newExpenseTitle}
@@ -319,6 +358,17 @@ export default function App() {
                   accessibilityLabel="Expense photo blob"
                   style={styles.modalInput}
                 />
+                {isKeyboardVisible ? (
+                  <Pressable
+                    style={styles.keyboardDismissButton}
+                    onPress={Keyboard.dismiss}
+                    accessibilityRole="button"
+                    accessibilityLabel="Hide keyboard"
+                    accessibilityHint="Dismisses the on-screen keyboard"
+                  >
+                    <Text style={styles.keyboardDismissButtonText}>Hide keyboard</Text>
+                  </Pressable>
+                ) : null}
                 <View style={styles.modalActions}>
                   <Pressable
                     style={[
@@ -341,8 +391,9 @@ export default function App() {
                     <Text style={styles.actionButtonText}>Cancel</Text>
                   </Pressable>
                 </View>
-              </View>
-            </View>
+                </Pressable>
+              </Pressable>
+            </KeyboardAvoidingView>
           </Modal>
         </>
       ) : (
@@ -415,9 +466,13 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     backgroundColor: 'rgba(0, 0, 0, 0.35)',
     padding: 16,
+    paddingTop: 72,
+  },
+  modalKeyboardContainer: {
+    flex: 1,
   },
   modalCard: {
     backgroundColor: '#fff',
@@ -435,6 +490,15 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
+  },
+  keyboardDismissButton: {
+    alignSelf: 'flex-end',
+    paddingVertical: 4,
+    paddingHorizontal: 6,
+  },
+  keyboardDismissButtonText: {
+    color: '#2f6bed',
+    fontWeight: '600',
   },
   modalActions: {
     flexDirection: 'row',
