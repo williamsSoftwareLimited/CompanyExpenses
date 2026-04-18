@@ -13,7 +13,11 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "Allow CompanyExpenses to take receipt photos.",
+        "NSPhotoLibraryUsageDescription": "Allow CompanyExpenses to choose receipt photos."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -21,8 +25,16 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "CAMERA",
+        "READ_MEDIA_IMAGES"
+      ]
     },
+    "plugins": [
+      "expo-image-picker",
+      "expo-ocr-kit"
+    ],
     "web": {
       "favicon": "./assets/favicon.png"
     }

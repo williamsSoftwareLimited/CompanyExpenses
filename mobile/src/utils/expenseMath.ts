@@ -5,7 +5,7 @@ export type Expense = {
   description: string;
   createdDate: string;
   updatedDate: string;
-  photoBlob: string | null;
+  receipt: string | null;
 };
 
 export type CurrencySymbol = '€' | '£' | '$';

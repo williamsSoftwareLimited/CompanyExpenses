@@ -7,7 +7,7 @@ type ExpenseItemProps = {
   description: string;
   createdDate: string;
   updatedDate: string;
-  photoBlob: string | null;
+  receipt: string | null;
   currencySymbol: CurrencySymbol;
   isSelected?: boolean;
   onPress?: () => void;
@@ -19,7 +19,7 @@ export const ExpenseItem = ({
   description,
   createdDate,
   updatedDate,
-  photoBlob,
+  receipt,
   currencySymbol,
   isSelected = false,
   onPress,
@@ -40,7 +40,7 @@ export const ExpenseItem = ({
       <Text>{formatCurrency(amount, currencySymbol)}</Text>
       <Text style={styles.metadataText}>Created: {formattedCreatedDate}</Text>
       <Text style={styles.metadataText}>Updated: {formattedUpdatedDate}</Text>
-      <Text style={styles.metadataText}>Photo: {photoBlob ? 'Attached' : 'Not attached'}</Text>
+      <Text style={styles.metadataText}>Receipt: {receipt ? 'Attached' : 'Not attached'}</Text>
     </Pressable>
   );
 };
