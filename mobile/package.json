@@ -13,9 +13,11 @@
     "mcp:start": "node mcp-server/dist/mcp-server/src/index.mjs"
   },
   "dependencies": {
-    "@react-native-picker/picker": "^2.11.4",
     "@modelcontextprotocol/sdk": "^1.29.0",
+    "@react-native-picker/picker": "^2.11.4",
     "expo": "~54.0.33",
+    "expo-image-picker": "~17.0.10",
+    "expo-ocr-kit": "^0.1.4",
     "expo-status-bar": "~3.0.9",
     "react": "19.1.0",
     "react-dom": "^19.1.0",
@@ -24,8 +26,8 @@
     "zod": "^4.1.12"
   },
   "devDependencies": {
-    "@types/node": "^24.7.2",
     "@types/jest": "^30.0.0",
+    "@types/node": "^24.7.2",
     "@types/react": "~19.1.0",
     "jest-expo": "^54.0.17",
     "tsx": "^4.20.6",
