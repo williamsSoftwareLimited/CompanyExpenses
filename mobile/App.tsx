@@ -4,6 +4,7 @@ import {
   AccessibilityInfo,
   Alert,
   FlatList,
+  GestureResponderEvent,
   Keyboard,
   KeyboardAvoidingView,
   Modal,
@@ -227,23 +228,28 @@ export default function App() {
   };
 
   useEffect(() => {
-    if (!isModalVisible) {
-      setIsKeyboardVisible(false);
-      return;
-    }
-
     const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
-      setIsKeyboardVisible(true);
+      if (isModalVisible) {
+        setIsKeyboardVisible(true);
+      }
     });
     const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
       setIsKeyboardVisible(false);
     });
+
+    if (!isModalVisible) {
+      setIsKeyboardVisible(false);
+    }
 
     return () => {
       showSubscription.remove();
       hideSubscription.remove();
     };
   }, [isModalVisible]);
+
+  const handleModalCardPress = (event: GestureResponderEvent) => {
+    event.stopPropagation();
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -318,9 +324,9 @@ export default function App() {
                 style={styles.modalOverlay}
                 onPress={Keyboard.dismiss}
                 accessibilityRole="button"
-                accessibilityLabel="Tap to dismiss keyboard"
+                accessibilityLabel="Modal background"
               >
-                <View style={styles.modalCard} onStartShouldSetResponder={() => true}>
+                <Pressable style={styles.modalCard} onPress={handleModalCardPress}>
                 <Text style={styles.modalTitle}>{modalTitle}</Text>
                 <TextInput
                   value={newExpenseTitle}
@@ -385,7 +391,7 @@ export default function App() {
                     <Text style={styles.actionButtonText}>Cancel</Text>
                   </Pressable>
                 </View>
-                </View>
+                </Pressable>
               </Pressable>
             </KeyboardAvoidingView>
           </Modal>
