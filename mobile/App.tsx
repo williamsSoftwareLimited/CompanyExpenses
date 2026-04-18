@@ -4,7 +4,10 @@ import {
   AccessibilityInfo,
   Alert,
   FlatList,
+  Keyboard,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
   SafeAreaView,
   StyleSheet,
@@ -286,8 +289,13 @@ export default function App() {
             ListEmptyComponent={<Text style={styles.emptyStateText}>No expenses available.</Text>}
           />
           <Modal visible={isModalVisible} transparent animationType="fade" onRequestClose={closeModal}>
-            <View style={styles.modalOverlay}>
-              <View style={styles.modalCard}>
+            <KeyboardAvoidingView
+              style={styles.modalKeyboardContainer}
+              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+              keyboardVerticalOffset={Platform.OS === 'ios' ? 24 : 0}
+            >
+              <Pressable style={styles.modalOverlay} onPress={Keyboard.dismiss}>
+                <Pressable style={styles.modalCard} onPress={() => {}}>
                 <Text style={styles.modalTitle}>{modalTitle}</Text>
                 <TextInput
                   value={newExpenseTitle}
@@ -319,6 +327,13 @@ export default function App() {
                   accessibilityLabel="Expense photo blob"
                   style={styles.modalInput}
                 />
+                <Pressable
+                  style={styles.keyboardDismissButton}
+                  onPress={Keyboard.dismiss}
+                  accessibilityLabel="Hide keyboard"
+                >
+                  <Text style={styles.keyboardDismissButtonText}>Hide keyboard</Text>
+                </Pressable>
                 <View style={styles.modalActions}>
                   <Pressable
                     style={[
@@ -341,8 +356,9 @@ export default function App() {
                     <Text style={styles.actionButtonText}>Cancel</Text>
                   </Pressable>
                 </View>
-              </View>
-            </View>
+                </Pressable>
+              </Pressable>
+            </KeyboardAvoidingView>
           </Modal>
         </>
       ) : (
@@ -415,9 +431,13 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     backgroundColor: 'rgba(0, 0, 0, 0.35)',
     padding: 16,
+    paddingTop: 72,
+  },
+  modalKeyboardContainer: {
+    flex: 1,
   },
   modalCard: {
     backgroundColor: '#fff',
@@ -435,6 +455,15 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
+  },
+  keyboardDismissButton: {
+    alignSelf: 'flex-end',
+    paddingVertical: 4,
+    paddingHorizontal: 6,
+  },
+  keyboardDismissButtonText: {
+    color: '#2f6bed',
+    fontWeight: '600',
   },
   modalActions: {
     flexDirection: 'row',
