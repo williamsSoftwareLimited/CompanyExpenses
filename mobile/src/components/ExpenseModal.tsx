@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -11,6 +12,8 @@ import {
   View,
 } from 'react-native';
 import { styles } from './ExpenseModalStyles';
+
+const BLUR_DEBOUNCE_MS = 50;
 
 type ExpenseModalProps = {
   visible: boolean;
@@ -59,6 +62,36 @@ export function ExpenseModal({
   onSubmit,
   onClose,
 }: ExpenseModalProps) {
+  const [isAnyInputFocused, setIsAnyInputFocused] = useState(false);
+  const blurTimeoutRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (blurTimeoutRef.current) {
+        clearTimeout(blurTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleInputFocus = () => {
+    if (blurTimeoutRef.current) {
+      clearTimeout(blurTimeoutRef.current);
+      blurTimeoutRef.current = null;
+    }
+    setIsAnyInputFocused(true);
+  };
+
+  const handleInputBlur = () => {
+    if (blurTimeoutRef.current) {
+      clearTimeout(blurTimeoutRef.current);
+    }
+
+    blurTimeoutRef.current = setTimeout(() => {
+      setIsAnyInputFocused(false);
+      blurTimeoutRef.current = null;
+    }, BLUR_DEBOUNCE_MS);
+  };
+
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <KeyboardAvoidingView
@@ -77,6 +110,8 @@ export function ExpenseModal({
             <TextInput
               value={newExpenseTitle}
               onChangeText={onChangeTitle}
+              onFocus={handleInputFocus}
+              onBlur={handleInputBlur}
               placeholder="Title"
               accessibilityLabel="Expense title"
               style={styles.modalInput}
@@ -84,6 +119,8 @@ export function ExpenseModal({
             <TextInput
               value={newExpenseAmount}
               onChangeText={onChangeAmount}
+              onFocus={handleInputFocus}
+              onBlur={handleInputBlur}
               placeholder="Amount"
               keyboardType="decimal-pad"
               accessibilityLabel="Expense amount"
@@ -92,6 +129,8 @@ export function ExpenseModal({
             <TextInput
               value={newExpenseVatAmount}
               onChangeText={onChangeVatAmount}
+              onFocus={handleInputFocus}
+              onBlur={handleInputBlur}
               placeholder="VAT amount"
               keyboardType="decimal-pad"
               accessibilityLabel="Expense VAT amount"
@@ -100,6 +139,8 @@ export function ExpenseModal({
             <TextInput
               value={newExpenseDescription}
               onChangeText={onChangeDescription}
+              onFocus={handleInputFocus}
+              onBlur={handleInputBlur}
               placeholder="Description"
               accessibilityLabel="Expense description"
               style={styles.modalInput}
@@ -154,7 +195,7 @@ export function ExpenseModal({
                 ) : null}
               </View>
             </View>
-            {isKeyboardVisible ? (
+            {isKeyboardVisible || isAnyInputFocused ? (
               <Pressable
                 style={styles.keyboardDismissButton}
                 onPress={Keyboard.dismiss}
