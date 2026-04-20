@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text } from 'react-native';
-import { CurrencySymbol, formatCurrency } from '../utils/expenseMath';
+import { calculateVat, CurrencySymbol, formatCurrency } from '../utils/expenseMath';
 
 type ExpenseItemProps = {
   title: string;
@@ -9,6 +9,7 @@ type ExpenseItemProps = {
   updatedDate: string;
   receipt: string | null;
   currencySymbol: CurrencySymbol;
+  vatCalcAmount: number;
   isSelected?: boolean;
   onPress?: () => void;
 };
@@ -21,11 +22,13 @@ export const ExpenseItem = ({
   updatedDate,
   receipt,
   currencySymbol,
+  vatCalcAmount,
   isSelected = false,
   onPress,
 }: ExpenseItemProps) => {
   const formattedCreatedDate = new Date(createdDate).toLocaleDateString();
   const formattedUpdatedDate = new Date(updatedDate).toLocaleDateString();
+  const vatAmount = calculateVat(amount, vatCalcAmount);
 
   return (
     <Pressable
@@ -38,6 +41,7 @@ export const ExpenseItem = ({
       <Text style={styles.title}>{title}</Text>
       <Text style={styles.description}>{description || 'No description provided.'}</Text>
       <Text>{formatCurrency(amount, currencySymbol)}</Text>
+      <Text style={styles.metadataText}>VAT: {formatCurrency(vatAmount, currencySymbol)}</Text>
       <Text style={styles.metadataText}>Created: {formattedCreatedDate}</Text>
       <Text style={styles.metadataText}>Updated: {formattedUpdatedDate}</Text>
       <Text style={styles.metadataText}>Receipt: {receipt ? 'Attached' : 'Not attached'}</Text>

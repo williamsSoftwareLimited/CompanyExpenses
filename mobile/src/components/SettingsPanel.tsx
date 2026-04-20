@@ -8,6 +8,8 @@ type SettingsPanelProps = {
   onCurrencyChange: (currency: CurrencySymbol) => void;
   budget: number;
   onBudgetChange: (budget: number) => void;
+  vatCalcAmount: number;
+  onVatCalcAmountChange: (vatCalcAmount: number) => void;
   onResetSpent: () => void;
   canResetSpent: boolean;
 };
@@ -17,14 +19,21 @@ export const SettingsPanel = ({
   onCurrencyChange,
   budget,
   onBudgetChange,
+  vatCalcAmount,
+  onVatCalcAmountChange,
   onResetSpent,
   canResetSpent,
 }: SettingsPanelProps) => {
   const [budgetInput, setBudgetInput] = useState(budget.toString());
+  const [vatCalcAmountInput, setVatCalcAmountInput] = useState(vatCalcAmount.toString());
 
   useEffect(() => {
     setBudgetInput(budget.toString());
   }, [budget]);
+
+  useEffect(() => {
+    setVatCalcAmountInput(vatCalcAmount.toString());
+  }, [vatCalcAmount]);
 
   const handleBudgetEndEditing = () => {
     const trimmedBudgetInput = budgetInput.trim();
@@ -43,6 +52,39 @@ export const SettingsPanel = ({
     }
 
     setBudgetInput(budget.toString());
+  };
+
+  const parseVatCalcAmount = (value: string): number | null => {
+    const trimmedValue = value.trim();
+    if (!trimmedValue) {
+      return null;
+    }
+
+    // Matches "numerator/denominator" fractions such as "23/123" or "0.5/2.0".
+    const fractionMatch = trimmedValue.match(/^(\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)$/);
+    if (fractionMatch) {
+      const numerator = Number.parseFloat(fractionMatch[1]);
+      const denominator = Number.parseFloat(fractionMatch[2]);
+      if (Number.isFinite(numerator) && Number.isFinite(denominator) && denominator !== 0) {
+        return numerator / denominator;
+      }
+      return null;
+    }
+
+    const parsedValue = Number.parseFloat(trimmedValue);
+    return Number.isFinite(parsedValue) ? parsedValue : null;
+  };
+
+  const handleVatCalcAmountEndEditing = () => {
+    const parsedVatCalcAmount = parseVatCalcAmount(vatCalcAmountInput);
+
+    if (parsedVatCalcAmount !== null && parsedVatCalcAmount > 0 && parsedVatCalcAmount <= 1) {
+      onVatCalcAmountChange(parsedVatCalcAmount);
+      setVatCalcAmountInput(parsedVatCalcAmount.toString());
+      return;
+    }
+
+    setVatCalcAmountInput(vatCalcAmount.toString());
   };
 
   return (
@@ -64,6 +106,16 @@ export const SettingsPanel = ({
         onEndEditing={handleBudgetEndEditing}
         keyboardType="decimal-pad"
         accessibilityLabel="Budget amount"
+        style={styles.budgetInput}
+      />
+      <Text style={styles.settingsLabel}>VAT Calc Amount</Text>
+      <TextInput
+        value={vatCalcAmountInput}
+        onChangeText={setVatCalcAmountInput}
+        onEndEditing={handleVatCalcAmountEndEditing}
+        keyboardType="numbers-and-punctuation"
+        accessibilityLabel="VAT calculation amount"
+        accessibilityHint="Enter a decimal like 0.18699 or a fraction like 23/123"
         style={styles.budgetInput}
       />
       <Pressable
