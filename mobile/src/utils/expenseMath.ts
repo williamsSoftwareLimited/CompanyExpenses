@@ -10,6 +10,7 @@ export type Expense = {
 
 export type CurrencySymbol = '€' | '£' | '$';
 export type BudgetStatus = 'on-track' | 'over-budget';
+export const DEFAULT_VAT_CALC_AMOUNT = 23 / 123;
 
 export type ExpenseSummary = {
   totalBudget: number;
@@ -37,6 +38,11 @@ export const formatCurrency = (amount: number, currencySymbol: CurrencySymbol = 
 
   return amount < 0 ? `-${formattedAmount}` : formattedAmount;
 };
+
+export const calculateVat = (
+  amount: number,
+  vatCalcAmount: number = DEFAULT_VAT_CALC_AMOUNT
+): number => amount * vatCalcAmount;
 
 export const summarizeExpenses = (expenses: Expense[], totalBudget: number): ExpenseSummary => {
   const totalSpent = calculateTotalSpent(expenses);

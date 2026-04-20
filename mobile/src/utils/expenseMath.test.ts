@@ -4,6 +4,8 @@ import {
   getBudgetStatus,
   summarizeExpenses,
   calculateRemainingBudget,
+  calculateVat,
+  DEFAULT_VAT_CALC_AMOUNT,
 } from './expenseMath';
 
 describe('expenseMath', () => {
@@ -55,6 +57,14 @@ describe('expenseMath', () => {
   it('formats selected currencies', () => {
     expect(formatCurrency(123.45, '£')).toBe('£123.45');
     expect(formatCurrency(123.45, '$')).toBe('$123.45');
+  });
+
+  it('calculates VAT using the default VAT calc amount', () => {
+    expect(calculateVat(123)).toBeCloseTo(123 * DEFAULT_VAT_CALC_AMOUNT);
+  });
+
+  it('calculates VAT using a custom VAT calc amount', () => {
+    expect(calculateVat(123, 0.2)).toBeCloseTo(24.6);
   });
 
   it('summarizes expenses for shared app and MCP usage', () => {

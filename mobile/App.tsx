@@ -18,6 +18,7 @@ import { ExpenseModal } from './src/components/ExpenseModal';
 import { SettingsPanel } from './src/components/SettingsPanel';
 import { ExpenseSummaryCard } from './src/components/ExpenseSummaryCard';
 import {
+  DEFAULT_VAT_CALC_AMOUNT,
   CurrencySymbol,
   Expense,
   calculateRemainingBudget,
@@ -108,6 +109,7 @@ export default function App() {
   const [monthlyBudget, setMonthlyBudget] = useState(1000);
   const [expenseList, setExpenseList] = useState<Expense[]>(expenses);
   const [currencySymbol, setCurrencySymbol] = useState<CurrencySymbol>('€');
+  const [vatCalcAmount, setVatCalcAmount] = useState(DEFAULT_VAT_CALC_AMOUNT);
   const [modalMode, setModalMode] = useState<'create' | 'update' | null>(null);
   const [newExpenseTitle, setNewExpenseTitle] = useState('');
   const [newExpenseAmount, setNewExpenseAmount] = useState('');
@@ -435,6 +437,7 @@ export default function App() {
                   updatedDate={item.updatedDate}
                   receipt={item.receipt}
                   currencySymbol={currencySymbol}
+                  vatCalcAmount={vatCalcAmount}
                   isSelected={item.id === selectedExpenseId}
                   onPress={() => handleSelectExpense(item.id)}
                 />
@@ -469,6 +472,8 @@ export default function App() {
             onCurrencyChange={setCurrencySymbol}
             budget={monthlyBudget}
             onBudgetChange={setMonthlyBudget}
+            vatCalcAmount={vatCalcAmount}
+            onVatCalcAmountChange={setVatCalcAmount}
             onResetSpent={handleResetSpent}
             canResetSpent={expenseList.length > 0}
           />
