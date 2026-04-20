@@ -1,5 +1,9 @@
 import { StyleSheet } from 'react-native';
 
+const MODAL_CLOSE_BUTTON_BACKGROUND = '#eceff5';
+const MODAL_CLOSE_BUTTON_TEXT = '#2b2b2b';
+const KEYBOARD_DISMISS_BUTTON_BACKGROUND = '#e5edff';
+
 export const styles = StyleSheet.create({
   actionButton: {
     flex: 1,
@@ -28,8 +32,28 @@ export const styles = StyleSheet.create({
     padding: 16,
     gap: 10,
   },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   modalTitle: {
     fontSize: 18,
+    fontWeight: '700',
+    flex: 1,
+  },
+  modalCloseButton: {
+    marginLeft: 8,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: MODAL_CLOSE_BUTTON_BACKGROUND,
+  },
+  modalCloseButtonText: {
+    color: MODAL_CLOSE_BUTTON_TEXT,
+    fontSize: 16,
     fontWeight: '700',
   },
   modalInput: {
@@ -84,8 +108,10 @@ export const styles = StyleSheet.create({
   },
   keyboardDismissButton: {
     alignSelf: 'flex-end',
-    paddingVertical: 4,
-    paddingHorizontal: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+    backgroundColor: KEYBOARD_DISMISS_BUTTON_BACKGROUND,
   },
   keyboardDismissButtonText: {
     color: '#2f6bed',

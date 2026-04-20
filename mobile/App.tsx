@@ -67,6 +67,15 @@ type ParsedReceiptData = {
   description?: string;
 };
 
+type ExpenseModalDraft = {
+  title: string;
+  amount: string;
+  vatAmount: string;
+  description: string;
+  receipt: string;
+  isVatAmountEdited: boolean;
+};
+
 const parseReceiptData = (rawText: string): ParsedReceiptData => {
   const lines = rawText
     .split(/\r?\n/)
@@ -125,6 +134,7 @@ export default function App() {
   const [selectedExpenseId, setSelectedExpenseId] = useState<string | null>(null);
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const [isProcessingReceipt, setIsProcessingReceipt] = useState(false);
+  const [modalInitialDraft, setModalInitialDraft] = useState<ExpenseModalDraft | null>(null);
 
   const totalSpent = calculateTotalSpent(expenseList);
   const remainingBudget = calculateRemainingBudget(monthlyBudget, totalSpent);
@@ -158,6 +168,29 @@ export default function App() {
     () => !newExpenseTitle.trim() || !isExpenseAmountValid,
     [newExpenseTitle, isExpenseAmountValid]
   );
+  const hasUnsavedModalChanges = useMemo(() => {
+    if (!isModalVisible || !modalInitialDraft) {
+      return false;
+    }
+
+    return (
+      newExpenseTitle !== modalInitialDraft.title ||
+      newExpenseAmount !== modalInitialDraft.amount ||
+      newExpenseVatAmount !== modalInitialDraft.vatAmount ||
+      newExpenseDescription !== modalInitialDraft.description ||
+      newExpenseReceipt !== modalInitialDraft.receipt ||
+      isVatAmountEditedInModal !== modalInitialDraft.isVatAmountEdited
+    );
+  }, [
+    isModalVisible,
+    isVatAmountEditedInModal,
+    modalInitialDraft,
+    newExpenseAmount,
+    newExpenseDescription,
+    newExpenseReceipt,
+    newExpenseTitle,
+    newExpenseVatAmount,
+  ]);
 
   const closeModal = () => {
     setModalMode(null);
@@ -168,17 +201,47 @@ export default function App() {
     setNewExpenseReceipt('');
     setIsVatAmountEditedInModal(false);
     setIsProcessingReceipt(false);
+    setModalInitialDraft(null);
+  };
+
+  const requestCloseModal = () => {
+    if (!hasUnsavedModalChanges) {
+      closeModal();
+      return;
+    }
+
+    Alert.alert('Do you want to close?', 'You have unsaved changes.', [
+      {
+        text: 'Keep editing',
+        style: 'cancel',
+      },
+      {
+        text: 'Close',
+        style: 'destructive',
+        onPress: closeModal,
+      },
+    ]);
   };
 
   const openCreateModal = () => {
+    const initialDraft: ExpenseModalDraft = {
+      title: '',
+      amount: '',
+      vatAmount: '',
+      description: '',
+      receipt: '',
+      isVatAmountEdited: false,
+    };
+
     setModalMode('create');
-    setNewExpenseTitle('');
-    setNewExpenseAmount('');
-    setNewExpenseVatAmount('');
-    setNewExpenseDescription('');
-    setNewExpenseReceipt('');
-    setIsVatAmountEditedInModal(false);
+    setNewExpenseTitle(initialDraft.title);
+    setNewExpenseAmount(initialDraft.amount);
+    setNewExpenseVatAmount(initialDraft.vatAmount);
+    setNewExpenseDescription(initialDraft.description);
+    setNewExpenseReceipt(initialDraft.receipt);
+    setIsVatAmountEditedInModal(initialDraft.isVatAmountEdited);
     setIsProcessingReceipt(false);
+    setModalInitialDraft(initialDraft);
   };
 
   const openUpdateModal = () => {
@@ -186,19 +249,28 @@ export default function App() {
       return;
     }
 
+    const vatAmountForModal =
+      selectedExpense.vatAmount !== null
+        ? formatVatAmountForModal(selectedExpense.vatAmount)
+        : formatVatAmountForModal(calculateVat(selectedExpense.amount, vatCalcAmount));
+    const initialDraft: ExpenseModalDraft = {
+      title: selectedExpense.title,
+      amount: selectedExpense.amount.toString(),
+      vatAmount: vatAmountForModal,
+      description: selectedExpense.description,
+      receipt: selectedExpense.receipt ?? '',
+      isVatAmountEdited: selectedExpense.vatAmount !== null,
+    };
+
     setModalMode('update');
-    setNewExpenseTitle(selectedExpense.title);
-    setNewExpenseAmount(selectedExpense.amount.toString());
-    if (selectedExpense.vatAmount !== null) {
-      setNewExpenseVatAmount(formatVatAmountForModal(selectedExpense.vatAmount));
-      setIsVatAmountEditedInModal(true);
-    } else {
-      setNewExpenseVatAmount(formatVatAmountForModal(calculateVat(selectedExpense.amount, vatCalcAmount)));
-      setIsVatAmountEditedInModal(false);
-    }
-    setNewExpenseDescription(selectedExpense.description);
-    setNewExpenseReceipt(selectedExpense.receipt ?? '');
+    setNewExpenseTitle(initialDraft.title);
+    setNewExpenseAmount(initialDraft.amount);
+    setNewExpenseVatAmount(initialDraft.vatAmount);
+    setIsVatAmountEditedInModal(initialDraft.isVatAmountEdited);
+    setNewExpenseDescription(initialDraft.description);
+    setNewExpenseReceipt(initialDraft.receipt);
     setIsProcessingReceipt(false);
+    setModalInitialDraft(initialDraft);
   };
 
   useEffect(() => {
@@ -514,7 +586,7 @@ export default function App() {
               onSelectReceipt={handleSelectReceipt}
               onClearReceipt={() => setNewExpenseReceipt('')}
               onSubmit={handleSubmitExpense}
-              onClose={closeModal}
+              onClose={requestCloseModal}
             />
           </>
         ) : (
