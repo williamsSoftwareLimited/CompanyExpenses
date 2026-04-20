@@ -60,6 +60,7 @@ export const SettingsPanel = ({
       return null;
     }
 
+    // Matches "numerator/denominator" fractions such as "23/123" or "0.5/2.0".
     const fractionMatch = trimmedValue.match(/^(-?\d+(?:\.\d+)?)\s*\/\s*(-?\d+(?:\.\d+)?)$/);
     if (fractionMatch) {
       const numerator = Number.parseFloat(fractionMatch[1]);
