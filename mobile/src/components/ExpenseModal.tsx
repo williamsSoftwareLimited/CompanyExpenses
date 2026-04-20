@@ -154,17 +154,15 @@ export function ExpenseModal({
                 ) : null}
               </View>
             </View>
-            {isKeyboardVisible ? (
-              <Pressable
-                style={styles.keyboardDismissButton}
-                onPress={Keyboard.dismiss}
-                accessibilityRole="button"
-                accessibilityLabel="Hide keyboard"
-                accessibilityHint="Dismisses the on-screen keyboard"
-              >
-                <Text style={styles.keyboardDismissButtonText}>Hide keyboard</Text>
-              </Pressable>
-            ) : null}
+            <Pressable
+              style={styles.keyboardDismissButton}
+              onPress={Keyboard.dismiss}
+              accessibilityRole="button"
+              accessibilityLabel="Hide keyboard"
+              accessibilityHint="Dismisses the on-screen keyboard"
+            >
+              <Text style={styles.keyboardDismissButtonText}>Hide keyboard</Text>
+            </Pressable>
             <View style={styles.modalActions}>
               <Pressable
                 style={[
