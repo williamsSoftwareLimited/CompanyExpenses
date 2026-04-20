@@ -316,12 +316,12 @@ export default function App() {
             ? {
                 ...expense,
                 title: trimmedTitle,
-                  amount: parsedExpenseAmount,
-                  vatAmount:
-                    isVatAmountEditedInModal && parsedExpenseVatAmount !== null && parsedExpenseVatAmount >= 0
-                      ? parsedExpenseVatAmount
-                      : null,
-                  description: trimmedDescription,
+                amount: parsedExpenseAmount,
+                vatAmount:
+                  isVatAmountEditedInModal && parsedExpenseVatAmount !== null && parsedExpenseVatAmount >= 0
+                    ? parsedExpenseVatAmount
+                    : null,
+                description: trimmedDescription,
                 updatedDate: new Date().toISOString(),
                 receipt: trimmedReceipt || null,
               }
