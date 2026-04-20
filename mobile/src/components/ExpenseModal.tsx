@@ -99,18 +99,29 @@ export function ExpenseModal({
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 24 : 0}
       >
-        <Pressable
-          style={styles.modalOverlay}
-          onPress={Keyboard.dismiss}
-          accessibilityRole="button"
-          accessibilityLabel="Modal background"
-        >
-          <Pressable style={styles.modalCard} onPress={(event) => event.stopPropagation()}>
-            <Text style={styles.modalTitle}>{modalTitle}</Text>
-            <TextInput
-              value={newExpenseTitle}
-              onChangeText={onChangeTitle}
-              onFocus={handleInputFocus}
+          <Pressable
+            style={styles.modalOverlay}
+            onPress={Keyboard.dismiss}
+            accessibilityRole="button"
+            accessibilityLabel="Modal background"
+          >
+            <Pressable style={styles.modalCard} onPress={(event) => event.stopPropagation()}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>{modalTitle}</Text>
+                <Pressable
+                  style={styles.modalCloseButton}
+                  onPress={onClose}
+                  accessibilityRole="button"
+                  accessibilityLabel="Close expense modal"
+                  accessibilityHint="Closes the expense form and prompts if there are unsaved changes"
+                >
+                  <Text style={styles.modalCloseButtonText}>✕</Text>
+                </Pressable>
+              </View>
+              <TextInput
+                value={newExpenseTitle}
+                onChangeText={onChangeTitle}
+                onFocus={handleInputFocus}
               onBlur={handleInputBlur}
               placeholder="Title"
               accessibilityLabel="Expense title"
@@ -197,13 +208,13 @@ export function ExpenseModal({
             </View>
             {isKeyboardVisible || isAnyInputFocused ? (
               <Pressable
-                style={styles.keyboardDismissButton}
+                style={styles.keyboardCloseButton}
                 onPress={Keyboard.dismiss}
                 accessibilityRole="button"
-                accessibilityLabel="Hide keyboard"
+                accessibilityLabel="Close keyboard"
                 accessibilityHint="Dismisses the on-screen keyboard"
               >
-                <Text style={styles.keyboardDismissButtonText}>Hide keyboard</Text>
+                <Text style={styles.keyboardCloseButtonText}>Close keyboard ✕</Text>
               </Pressable>
             ) : null}
             <View style={styles.modalActions}>

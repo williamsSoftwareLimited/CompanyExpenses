@@ -28,8 +28,28 @@ export const styles = StyleSheet.create({
     padding: 16,
     gap: 10,
   },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   modalTitle: {
     fontSize: 18,
+    fontWeight: '700',
+    flex: 1,
+  },
+  modalCloseButton: {
+    marginLeft: 8,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#eceff5',
+  },
+  modalCloseButtonText: {
+    color: '#2b2b2b',
+    fontSize: 16,
     fontWeight: '700',
   },
   modalInput: {
@@ -82,12 +102,14 @@ export const styles = StyleSheet.create({
     color: '#2f6bed',
     fontWeight: '500',
   },
-  keyboardDismissButton: {
+  keyboardCloseButton: {
     alignSelf: 'flex-end',
-    paddingVertical: 4,
-    paddingHorizontal: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+    backgroundColor: '#e5edff',
   },
-  keyboardDismissButtonText: {
+  keyboardCloseButtonText: {
     color: '#2f6bed',
     fontWeight: '600',
   },
