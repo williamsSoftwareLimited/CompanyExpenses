@@ -4,23 +4,17 @@ import * as ImagePicker from 'expo-image-picker';
 import { recognizeText } from 'expo-ocr-kit';
 import {
   AccessibilityInfo,
-  ActivityIndicator,
   Alert,
   FlatList,
-  GestureResponderEvent,
-  Image,
   Keyboard,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
   Pressable,
   SafeAreaView,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from 'react-native';
 import { ExpenseItem } from './src/components/ExpenseItem';
+import { ExpenseModal } from './src/components/ExpenseModal';
 import { SettingsPanel } from './src/components/SettingsPanel';
 import { ExpenseSummaryCard } from './src/components/ExpenseSummaryCard';
 import {
@@ -381,10 +375,6 @@ export default function App() {
     };
   }, [isModalVisible]);
 
-  const handleModalCardPress = (event: GestureResponderEvent) => {
-    event.stopPropagation();
-  };
-
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>Company Expenses</Text>
@@ -450,129 +440,27 @@ export default function App() {
             )}
             ListEmptyComponent={<Text style={styles.emptyStateText}>No expenses available.</Text>}
           />
-          <Modal visible={isModalVisible} transparent animationType="fade" onRequestClose={closeModal}>
-            <KeyboardAvoidingView
-              style={styles.modalKeyboardContainer}
-              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-              keyboardVerticalOffset={Platform.OS === 'ios' ? 24 : 0}
-            >
-              <Pressable
-                style={styles.modalOverlay}
-                onPress={Keyboard.dismiss}
-                accessibilityRole="button"
-                accessibilityLabel="Modal background"
-              >
-                <Pressable style={styles.modalCard} onPress={handleModalCardPress}>
-                  <Text style={styles.modalTitle}>{modalTitle}</Text>
-                  <TextInput
-                    value={newExpenseTitle}
-                    onChangeText={setNewExpenseTitle}
-                    placeholder="Title"
-                    accessibilityLabel="Expense title"
-                    style={styles.modalInput}
-                  />
-                  <TextInput
-                    value={newExpenseAmount}
-                    onChangeText={setNewExpenseAmount}
-                    placeholder="Amount"
-                    keyboardType="decimal-pad"
-                    accessibilityLabel="Expense amount"
-                    style={styles.modalInput}
-                  />
-                  <TextInput
-                    value={newExpenseDescription}
-                    onChangeText={setNewExpenseDescription}
-                    placeholder="Description"
-                    accessibilityLabel="Expense description"
-                    style={styles.modalInput}
-                    multiline
-                  />
-                  <View style={styles.receiptSection}>
-                    <Text style={styles.receiptSectionTitle}>Receipt</Text>
-                    <View style={styles.receiptHolder}>
-                      {newExpenseReceipt ? (
-                        <Image
-                          source={{ uri: newExpenseReceipt }}
-                          style={styles.receiptImage}
-                          accessibilityLabel="Selected receipt image"
-                        />
-                      ) : (
-                        <Text style={styles.receiptPlaceholderText}>No receipt selected</Text>
-                      )}
-                    </View>
-                    {isProcessingReceipt ? (
-                      <View style={styles.ocrStatus}>
-                        <ActivityIndicator size="small" color="#2f6bed" />
-                        <Text style={styles.ocrStatusText}>Reading receipt with OCR…</Text>
-                      </View>
-                    ) : null}
-                    <View style={styles.receiptActions}>
-                      <Pressable
-                        style={[styles.actionButton, styles.receiptActionButton]}
-                        onPress={() => {
-                          void handleSelectReceipt('camera');
-                        }}
-                        accessibilityLabel="Take receipt photo"
-                      >
-                        <Text style={styles.actionButtonText}>Take photo</Text>
-                      </Pressable>
-                      <Pressable
-                        style={[styles.actionButton, styles.receiptActionButton]}
-                        onPress={() => {
-                          void handleSelectReceipt('library');
-                        }}
-                        accessibilityLabel="Choose receipt from photos"
-                      >
-                        <Text style={styles.actionButtonText}>Choose photo</Text>
-                      </Pressable>
-                      {newExpenseReceipt ? (
-                        <Pressable
-                          style={[styles.actionButton, styles.receiptActionButton, styles.clearReceiptButton]}
-                          onPress={() => setNewExpenseReceipt('')}
-                          accessibilityLabel="Remove selected receipt"
-                        >
-                          <Text style={styles.actionButtonText}>Clear</Text>
-                        </Pressable>
-                      ) : null}
-                    </View>
-                  </View>
-                  {isKeyboardVisible ? (
-                    <Pressable
-                      style={styles.keyboardDismissButton}
-                      onPress={Keyboard.dismiss}
-                      accessibilityRole="button"
-                      accessibilityLabel="Hide keyboard"
-                      accessibilityHint="Dismisses the on-screen keyboard"
-                    >
-                      <Text style={styles.keyboardDismissButtonText}>Hide keyboard</Text>
-                    </Pressable>
-                  ) : null}
-                  <View style={styles.modalActions}>
-                    <Pressable
-                      style={[
-                        styles.actionButton,
-                        styles.modalActionButton,
-                        isSubmitDisabled && styles.disabledActionButton,
-                      ]}
-                      onPress={handleSubmitExpense}
-                      disabled={isSubmitDisabled}
-                      accessibilityLabel={`${submitButtonLabel} expense`}
-                      accessibilityHint={submitButtonAccessibilityHint}
-                    >
-                      <Text style={styles.actionButtonText}>{submitButtonLabel}</Text>
-                    </Pressable>
-                    <Pressable
-                      style={[styles.actionButton, styles.modalActionButton, styles.cancelButton]}
-                      onPress={closeModal}
-                      accessibilityLabel={cancelButtonAccessibilityLabel}
-                    >
-                      <Text style={styles.actionButtonText}>Cancel</Text>
-                    </Pressable>
-                  </View>
-                </Pressable>
-              </Pressable>
-            </KeyboardAvoidingView>
-          </Modal>
+          <ExpenseModal
+            visible={isModalVisible}
+            isKeyboardVisible={isKeyboardVisible}
+            isProcessingReceipt={isProcessingReceipt}
+            isSubmitDisabled={isSubmitDisabled}
+            modalTitle={modalTitle}
+            submitButtonLabel={submitButtonLabel}
+            submitButtonAccessibilityHint={submitButtonAccessibilityHint}
+            cancelButtonAccessibilityLabel={cancelButtonAccessibilityLabel}
+            newExpenseTitle={newExpenseTitle}
+            newExpenseAmount={newExpenseAmount}
+            newExpenseDescription={newExpenseDescription}
+            newExpenseReceipt={newExpenseReceipt}
+            onChangeTitle={setNewExpenseTitle}
+            onChangeAmount={setNewExpenseAmount}
+            onChangeDescription={setNewExpenseDescription}
+            onSelectReceipt={handleSelectReceipt}
+            onClearReceipt={() => setNewExpenseReceipt('')}
+            onSubmit={handleSubmitExpense}
+            onClose={closeModal}
+          />
         </>
       ) : (
         <SettingsPanel
@@ -641,95 +529,6 @@ const styles = StyleSheet.create({
   emptyStateText: {
     marginTop: 8,
     color: '#707070',
-  },
-  modalOverlay: {
-    flex: 1,
-    justifyContent: 'flex-start',
-    backgroundColor: 'rgba(0, 0, 0, 0.35)',
-    padding: 16,
-    paddingTop: 72,
-  },
-  modalKeyboardContainer: {
-    flex: 1,
-  },
-  modalCard: {
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 16,
-    gap: 10,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  modalInput: {
-    borderWidth: 1,
-    borderColor: '#d0d0d0',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-  },
-  receiptSection: {
-    gap: 8,
-  },
-  receiptSectionTitle: {
-    fontWeight: '600',
-  },
-  receiptHolder: {
-    borderWidth: 1,
-    borderColor: '#d0d0d0',
-    borderRadius: 8,
-    minHeight: 180,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f8f8f8',
-    overflow: 'hidden',
-  },
-  receiptImage: {
-    width: '100%',
-    height: 180,
-    resizeMode: 'cover',
-  },
-  receiptPlaceholderText: {
-    color: '#606060',
-  },
-  receiptActions: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  receiptActionButton: {
-    flex: 1,
-  },
-  clearReceiptButton: {
-    backgroundColor: '#6f6f6f',
-  },
-  ocrStatus: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  ocrStatusText: {
-    color: '#2f6bed',
-    fontWeight: '500',
-  },
-  keyboardDismissButton: {
-    alignSelf: 'flex-end',
-    paddingVertical: 4,
-    paddingHorizontal: 6,
-  },
-  keyboardDismissButtonText: {
-    color: '#2f6bed',
-    fontWeight: '600',
-  },
-  modalActions: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  modalActionButton: {
-    flex: 1,
-  },
-  cancelButton: {
-    backgroundColor: '#6f6f6f',
   },
   disabledActionButton: {
     backgroundColor: '#a6b8e8',
