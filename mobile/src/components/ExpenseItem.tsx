@@ -1,9 +1,10 @@
 import { Pressable, StyleSheet, Text } from 'react-native';
-import { calculateVat, CurrencySymbol, formatCurrency } from '../utils/expenseMath';
+import { CurrencySymbol, formatCurrency, resolveVatAmount } from '../utils/expenseMath';
 
 type ExpenseItemProps = {
   title: string;
   amount: number;
+  vatAmount: number | null;
   description: string;
   createdDate: string;
   updatedDate: string;
@@ -17,6 +18,7 @@ type ExpenseItemProps = {
 export const ExpenseItem = ({
   title,
   amount,
+  vatAmount,
   description,
   createdDate,
   updatedDate,
@@ -28,7 +30,7 @@ export const ExpenseItem = ({
 }: ExpenseItemProps) => {
   const formattedCreatedDate = new Date(createdDate).toLocaleDateString();
   const formattedUpdatedDate = new Date(updatedDate).toLocaleDateString();
-  const vatAmount = calculateVat(amount, vatCalcAmount);
+  const resolvedVatAmount = resolveVatAmount(amount, vatCalcAmount, vatAmount);
 
   return (
     <Pressable
@@ -41,7 +43,7 @@ export const ExpenseItem = ({
       <Text style={styles.title}>{title}</Text>
       <Text style={styles.description}>{description || 'No description provided.'}</Text>
       <Text>{formatCurrency(amount, currencySymbol)}</Text>
-      <Text style={styles.metadataText}>VAT: {formatCurrency(vatAmount, currencySymbol)}</Text>
+      <Text style={styles.metadataText}>VAT: {formatCurrency(resolvedVatAmount, currencySymbol)}</Text>
       <Text style={styles.metadataText}>Created: {formattedCreatedDate}</Text>
       <Text style={styles.metadataText}>Updated: {formattedUpdatedDate}</Text>
       <Text style={styles.metadataText}>Receipt: {receipt ? 'Attached' : 'Not attached'}</Text>

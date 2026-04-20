@@ -23,10 +23,12 @@ type ExpenseModalProps = {
   cancelButtonAccessibilityLabel: string;
   newExpenseTitle: string;
   newExpenseAmount: string;
+  newExpenseVatAmount: string;
   newExpenseDescription: string;
   newExpenseReceipt: string;
   onChangeTitle: (value: string) => void;
   onChangeAmount: (value: string) => void;
+  onChangeVatAmount: (value: string) => void;
   onChangeDescription: (value: string) => void;
   onSelectReceipt: (source: 'camera' | 'library') => void | Promise<void>;
   onClearReceipt: () => void;
@@ -45,10 +47,12 @@ export function ExpenseModal({
   cancelButtonAccessibilityLabel,
   newExpenseTitle,
   newExpenseAmount,
+  newExpenseVatAmount,
   newExpenseDescription,
   newExpenseReceipt,
   onChangeTitle,
   onChangeAmount,
+  onChangeVatAmount,
   onChangeDescription,
   onSelectReceipt,
   onClearReceipt,
@@ -83,6 +87,14 @@ export function ExpenseModal({
               placeholder="Amount"
               keyboardType="decimal-pad"
               accessibilityLabel="Expense amount"
+              style={styles.modalInput}
+            />
+            <TextInput
+              value={newExpenseVatAmount}
+              onChangeText={onChangeVatAmount}
+              placeholder="VAT amount"
+              keyboardType="decimal-pad"
+              accessibilityLabel="Expense VAT amount"
               style={styles.modalInput}
             />
             <TextInput
