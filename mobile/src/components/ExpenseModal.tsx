@@ -15,7 +15,7 @@ import { styles } from './ExpenseModalStyles';
 
 const BLUR_DEBOUNCE_MS = 50;
 const CLOSE_ICON = '✕';
-const CLOSE_KEYBOARD_BUTTON_LABEL = `Close keyboard ${CLOSE_ICON}`;
+const DISMISS_KEYBOARD_BUTTON_LABEL = `Close keyboard ${CLOSE_ICON}`;
 
 type ExpenseModalProps = {
   visible: boolean;
@@ -210,13 +210,13 @@ export function ExpenseModal({
             </View>
             {isKeyboardVisible || isAnyInputFocused ? (
               <Pressable
-                style={styles.keyboardCloseButton}
+                style={styles.keyboardDismissButton}
                 onPress={Keyboard.dismiss}
                 accessibilityRole="button"
-                accessibilityLabel="Close keyboard"
+                accessibilityLabel="Dismiss keyboard"
                 accessibilityHint="Dismisses the on-screen keyboard"
               >
-                <Text style={styles.keyboardCloseButtonText}>{CLOSE_KEYBOARD_BUTTON_LABEL}</Text>
+                <Text style={styles.keyboardDismissButtonText}>{DISMISS_KEYBOARD_BUTTON_LABEL}</Text>
               </Pressable>
             ) : null}
             <View style={styles.modalActions}>

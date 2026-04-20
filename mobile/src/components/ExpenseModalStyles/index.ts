@@ -2,7 +2,7 @@ import { StyleSheet } from 'react-native';
 
 const MODAL_CLOSE_BUTTON_BACKGROUND = '#eceff5';
 const MODAL_CLOSE_BUTTON_TEXT = '#2b2b2b';
-const KEYBOARD_CLOSE_BUTTON_BACKGROUND = '#e5edff';
+const KEYBOARD_DISMISS_BUTTON_BACKGROUND = '#e5edff';
 
 export const styles = StyleSheet.create({
   actionButton: {
@@ -106,14 +106,14 @@ export const styles = StyleSheet.create({
     color: '#2f6bed',
     fontWeight: '500',
   },
-  keyboardCloseButton: {
+  keyboardDismissButton: {
     alignSelf: 'flex-end',
     paddingVertical: 6,
     paddingHorizontal: 8,
     borderRadius: 8,
-    backgroundColor: KEYBOARD_CLOSE_BUTTON_BACKGROUND,
+    backgroundColor: KEYBOARD_DISMISS_BUTTON_BACKGROUND,
   },
-  keyboardCloseButtonText: {
+  keyboardDismissButtonText: {
     color: '#2f6bed',
     fontWeight: '600',
   },
