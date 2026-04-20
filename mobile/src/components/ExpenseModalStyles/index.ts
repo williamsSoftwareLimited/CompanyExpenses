@@ -1,5 +1,9 @@
 import { StyleSheet } from 'react-native';
 
+const MODAL_CLOSE_BUTTON_BACKGROUND = '#eceff5';
+const MODAL_CLOSE_BUTTON_TEXT = '#2b2b2b';
+const KEYBOARD_CLOSE_BUTTON_BACKGROUND = '#e5edff';
+
 export const styles = StyleSheet.create({
   actionButton: {
     flex: 1,
@@ -45,10 +49,10 @@ export const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#eceff5',
+    backgroundColor: MODAL_CLOSE_BUTTON_BACKGROUND,
   },
   modalCloseButtonText: {
-    color: '#2b2b2b',
+    color: MODAL_CLOSE_BUTTON_TEXT,
     fontSize: 16,
     fontWeight: '700',
   },
@@ -107,7 +111,7 @@ export const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 8,
     borderRadius: 8,
-    backgroundColor: '#e5edff',
+    backgroundColor: KEYBOARD_CLOSE_BUTTON_BACKGROUND,
   },
   keyboardCloseButtonText: {
     color: '#2f6bed',

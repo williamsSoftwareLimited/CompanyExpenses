@@ -14,6 +14,8 @@ import {
 import { styles } from './ExpenseModalStyles';
 
 const BLUR_DEBOUNCE_MS = 50;
+const CLOSE_ICON = '✕';
+const CLOSE_KEYBOARD_BUTTON_LABEL = `Close keyboard ${CLOSE_ICON}`;
 
 type ExpenseModalProps = {
   visible: boolean;
@@ -115,7 +117,7 @@ export function ExpenseModal({
                   accessibilityLabel="Close expense modal"
                   accessibilityHint="Closes the expense form and prompts if there are unsaved changes"
                 >
-                  <Text style={styles.modalCloseButtonText}>✕</Text>
+                  <Text style={styles.modalCloseButtonText}>{CLOSE_ICON}</Text>
                 </Pressable>
               </View>
               <TextInput
@@ -214,7 +216,7 @@ export function ExpenseModal({
                 accessibilityLabel="Close keyboard"
                 accessibilityHint="Dismisses the on-screen keyboard"
               >
-                <Text style={styles.keyboardCloseButtonText}>Close keyboard ✕</Text>
+                <Text style={styles.keyboardCloseButtonText}>{CLOSE_KEYBOARD_BUTTON_LABEL}</Text>
               </Pressable>
             ) : null}
             <View style={styles.modalActions}>
