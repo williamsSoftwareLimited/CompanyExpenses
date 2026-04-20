@@ -61,7 +61,7 @@ export const SettingsPanel = ({
     }
 
     // Matches "numerator/denominator" fractions such as "23/123" or "0.5/2.0".
-    const fractionMatch = trimmedValue.match(/^(-?\d+(?:\.\d+)?)\s*\/\s*(-?\d+(?:\.\d+)?)$/);
+    const fractionMatch = trimmedValue.match(/^(\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)$/);
     if (fractionMatch) {
       const numerator = Number.parseFloat(fractionMatch[1]);
       const denominator = Number.parseFloat(fractionMatch[2]);
@@ -78,7 +78,7 @@ export const SettingsPanel = ({
   const handleVatCalcAmountEndEditing = () => {
     const parsedVatCalcAmount = parseVatCalcAmount(vatCalcAmountInput);
 
-    if (parsedVatCalcAmount !== null && parsedVatCalcAmount > 0) {
+    if (parsedVatCalcAmount !== null && parsedVatCalcAmount > 0 && parsedVatCalcAmount <= 1) {
       onVatCalcAmountChange(parsedVatCalcAmount);
       setVatCalcAmountInput(parsedVatCalcAmount.toString());
       return;
