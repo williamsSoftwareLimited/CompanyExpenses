@@ -2,13 +2,13 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect, useMemo, useState } from 'react';
 import * as ImagePicker from 'expo-image-picker';
 import { recognizeText } from 'expo-ocr-kit';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import {
   AccessibilityInfo,
   Alert,
   FlatList,
   Keyboard,
   Pressable,
-  SafeAreaView,
   StyleSheet,
   Text,
   View,
@@ -376,104 +376,106 @@ export default function App() {
   }, [isModalVisible]);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Company Expenses</Text>
-      <View style={styles.tabContainer}>
-        <Pressable
-          style={[styles.tabButton, activeTab === 'main' && styles.activeTabButton]}
-          onPress={() => setActiveTab('main')}
-        >
-          <Text style={[styles.tabText, activeTab === 'main' && styles.activeTabText]}>Main</Text>
-        </Pressable>
-        <Pressable
-          style={[styles.tabButton, activeTab === 'settings' && styles.activeTabButton]}
-          onPress={() => setActiveTab('settings')}
-        >
-          <Text style={[styles.tabText, activeTab === 'settings' && styles.activeTabText]}>
-            Settings
-          </Text>
-        </Pressable>
-      </View>
+    <SafeAreaProvider>
+      <SafeAreaView style={styles.container}>
+        <Text style={styles.title}>Company Expenses</Text>
+        <View style={styles.tabContainer}>
+          <Pressable
+            style={[styles.tabButton, activeTab === 'main' && styles.activeTabButton]}
+            onPress={() => setActiveTab('main')}
+          >
+            <Text style={[styles.tabText, activeTab === 'main' && styles.activeTabText]}>Main</Text>
+          </Pressable>
+          <Pressable
+            style={[styles.tabButton, activeTab === 'settings' && styles.activeTabButton]}
+            onPress={() => setActiveTab('settings')}
+          >
+            <Text style={[styles.tabText, activeTab === 'settings' && styles.activeTabText]}>
+              Settings
+            </Text>
+          </Pressable>
+        </View>
 
-      {activeTab === 'main' ? (
-        <>
-          <ExpenseSummaryCard
-            totalBudget={monthlyBudget}
-            totalSpent={totalSpent}
-            budgetStatus={budgetStatus}
+        {activeTab === 'main' ? (
+          <>
+            <ExpenseSummaryCard
+              totalBudget={monthlyBudget}
+              totalSpent={totalSpent}
+              budgetStatus={budgetStatus}
+              currencySymbol={currencySymbol}
+            />
+            <View style={styles.actionContainer}>
+              <Pressable style={styles.actionButton} onPress={openCreateModal}>
+                <Text style={styles.actionButtonText}>Create</Text>
+              </Pressable>
+              <Pressable
+                style={[styles.actionButton, !hasSelectedExpense && styles.disabledActionButton]}
+                onPress={openUpdateModal}
+                disabled={!hasSelectedExpense}
+              >
+                <Text style={styles.actionButtonText}>Update</Text>
+              </Pressable>
+              <Pressable
+                style={[styles.actionButton, !hasSelectedExpense && styles.disabledActionButton]}
+                onPress={handleDelete}
+                disabled={!hasSelectedExpense}
+              >
+                <Text style={styles.actionButtonText}>Delete</Text>
+              </Pressable>
+            </View>
+            <FlatList
+              data={expenseList}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <ExpenseItem
+                  title={item.title}
+                  amount={item.amount}
+                  description={item.description}
+                  createdDate={item.createdDate}
+                  updatedDate={item.updatedDate}
+                  receipt={item.receipt}
+                  currencySymbol={currencySymbol}
+                  isSelected={item.id === selectedExpenseId}
+                  onPress={() => handleSelectExpense(item.id)}
+                />
+              )}
+              ListEmptyComponent={<Text style={styles.emptyStateText}>No expenses available.</Text>}
+            />
+            <ExpenseModal
+              visible={isModalVisible}
+              isKeyboardVisible={isKeyboardVisible}
+              isProcessingReceipt={isProcessingReceipt}
+              isSubmitDisabled={isSubmitDisabled}
+              modalTitle={modalTitle}
+              submitButtonLabel={submitButtonLabel}
+              submitButtonAccessibilityHint={submitButtonAccessibilityHint}
+              cancelButtonAccessibilityLabel={cancelButtonAccessibilityLabel}
+              newExpenseTitle={newExpenseTitle}
+              newExpenseAmount={newExpenseAmount}
+              newExpenseDescription={newExpenseDescription}
+              newExpenseReceipt={newExpenseReceipt}
+              onChangeTitle={setNewExpenseTitle}
+              onChangeAmount={setNewExpenseAmount}
+              onChangeDescription={setNewExpenseDescription}
+              onSelectReceipt={handleSelectReceipt}
+              onClearReceipt={() => setNewExpenseReceipt('')}
+              onSubmit={handleSubmitExpense}
+              onClose={closeModal}
+            />
+          </>
+        ) : (
+          <SettingsPanel
             currencySymbol={currencySymbol}
+            onCurrencyChange={setCurrencySymbol}
+            budget={monthlyBudget}
+            onBudgetChange={setMonthlyBudget}
+            onResetSpent={handleResetSpent}
+            canResetSpent={expenseList.length > 0}
           />
-          <View style={styles.actionContainer}>
-            <Pressable style={styles.actionButton} onPress={openCreateModal}>
-              <Text style={styles.actionButtonText}>Create</Text>
-            </Pressable>
-            <Pressable
-              style={[styles.actionButton, !hasSelectedExpense && styles.disabledActionButton]}
-              onPress={openUpdateModal}
-              disabled={!hasSelectedExpense}
-            >
-              <Text style={styles.actionButtonText}>Update</Text>
-            </Pressable>
-            <Pressable
-              style={[styles.actionButton, !hasSelectedExpense && styles.disabledActionButton]}
-              onPress={handleDelete}
-              disabled={!hasSelectedExpense}
-            >
-              <Text style={styles.actionButtonText}>Delete</Text>
-            </Pressable>
-          </View>
-          <FlatList
-            data={expenseList}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <ExpenseItem
-                title={item.title}
-                amount={item.amount}
-                description={item.description}
-                createdDate={item.createdDate}
-                updatedDate={item.updatedDate}
-                receipt={item.receipt}
-                currencySymbol={currencySymbol}
-                isSelected={item.id === selectedExpenseId}
-                onPress={() => handleSelectExpense(item.id)}
-              />
-            )}
-            ListEmptyComponent={<Text style={styles.emptyStateText}>No expenses available.</Text>}
-          />
-          <ExpenseModal
-            visible={isModalVisible}
-            isKeyboardVisible={isKeyboardVisible}
-            isProcessingReceipt={isProcessingReceipt}
-            isSubmitDisabled={isSubmitDisabled}
-            modalTitle={modalTitle}
-            submitButtonLabel={submitButtonLabel}
-            submitButtonAccessibilityHint={submitButtonAccessibilityHint}
-            cancelButtonAccessibilityLabel={cancelButtonAccessibilityLabel}
-            newExpenseTitle={newExpenseTitle}
-            newExpenseAmount={newExpenseAmount}
-            newExpenseDescription={newExpenseDescription}
-            newExpenseReceipt={newExpenseReceipt}
-            onChangeTitle={setNewExpenseTitle}
-            onChangeAmount={setNewExpenseAmount}
-            onChangeDescription={setNewExpenseDescription}
-            onSelectReceipt={handleSelectReceipt}
-            onClearReceipt={() => setNewExpenseReceipt('')}
-            onSubmit={handleSubmitExpense}
-            onClose={closeModal}
-          />
-        </>
-      ) : (
-        <SettingsPanel
-          currencySymbol={currencySymbol}
-          onCurrencyChange={setCurrencySymbol}
-          budget={monthlyBudget}
-          onBudgetChange={setMonthlyBudget}
-          onResetSpent={handleResetSpent}
-          canResetSpent={expenseList.length > 0}
-        />
-      )}
-      <StatusBar style="auto" />
-    </SafeAreaView>
+        )}
+        <StatusBar style="auto" />
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
 
