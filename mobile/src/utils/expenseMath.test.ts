@@ -6,6 +6,7 @@ import {
   calculateRemainingBudget,
   calculateVat,
   DEFAULT_VAT_CALC_AMOUNT,
+  formatVatAmountForModal,
   resolveVatAmount,
 } from './expenseMath';
 
@@ -68,6 +69,11 @@ describe('expenseMath', () => {
 
   it('calculates VAT using a custom VAT calc amount', () => {
     expect(calculateVat(123, 0.2)).toBeCloseTo(24.6);
+  });
+
+  it('formats VAT for modal to two decimal places', () => {
+    expect(formatVatAmountForModal(24.6)).toBe('24.60');
+    expect(formatVatAmountForModal(24.605)).toBe('24.61');
   });
 
   it('prefers entered VAT amount over calculated VAT amount', () => {

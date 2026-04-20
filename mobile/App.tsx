@@ -24,6 +24,7 @@ import {
   calculateVat,
   calculateRemainingBudget,
   calculateTotalSpent,
+  formatVatAmountForModal,
   getBudgetStatus,
 } from './src/utils/expenseMath';
 
@@ -189,10 +190,10 @@ export default function App() {
     setNewExpenseTitle(selectedExpense.title);
     setNewExpenseAmount(selectedExpense.amount.toString());
     if (selectedExpense.vatAmount !== null) {
-      setNewExpenseVatAmount(selectedExpense.vatAmount.toString());
+      setNewExpenseVatAmount(formatVatAmountForModal(selectedExpense.vatAmount));
       setIsVatAmountEditedInModal(true);
     } else {
-      setNewExpenseVatAmount(calculateVat(selectedExpense.amount, vatCalcAmount).toString());
+      setNewExpenseVatAmount(formatVatAmountForModal(calculateVat(selectedExpense.amount, vatCalcAmount)));
       setIsVatAmountEditedInModal(false);
     }
     setNewExpenseDescription(selectedExpense.description);
@@ -210,7 +211,7 @@ export default function App() {
       return;
     }
 
-    setNewExpenseVatAmount(calculateVat(parsedExpenseAmount, vatCalcAmount).toString());
+    setNewExpenseVatAmount(formatVatAmountForModal(calculateVat(parsedExpenseAmount, vatCalcAmount)));
   }, [isModalVisible, isVatAmountEditedInModal, parsedExpenseAmount, vatCalcAmount]);
 
   const handleChangeExpenseVatAmount = (value: string) => {

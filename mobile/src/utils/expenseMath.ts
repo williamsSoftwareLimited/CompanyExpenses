@@ -45,6 +45,8 @@ export const calculateVat = (
   vatCalcAmount: number = DEFAULT_VAT_CALC_AMOUNT
 ): number => amount * vatCalcAmount;
 
+export const formatVatAmountForModal = (vatAmount: number): string => vatAmount.toFixed(2);
+
 export const resolveVatAmount = (
   amount: number,
   vatCalcAmount: number = DEFAULT_VAT_CALC_AMOUNT,
