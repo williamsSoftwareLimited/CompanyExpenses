@@ -2,6 +2,7 @@ export type Expense = {
   id: string;
   title: string;
   amount: number;
+  vatAmount: number | null;
   description: string;
   createdDate: string;
   updatedDate: string;
@@ -43,6 +44,12 @@ export const calculateVat = (
   amount: number,
   vatCalcAmount: number = DEFAULT_VAT_CALC_AMOUNT
 ): number => amount * vatCalcAmount;
+
+export const resolveVatAmount = (
+  amount: number,
+  vatCalcAmount: number = DEFAULT_VAT_CALC_AMOUNT,
+  vatAmount: number | null = null
+): number => (vatAmount === null ? calculateVat(amount, vatCalcAmount) : vatAmount);
 
 export const summarizeExpenses = (expenses: Expense[], totalBudget: number): ExpenseSummary => {
   const totalSpent = calculateTotalSpent(expenses);

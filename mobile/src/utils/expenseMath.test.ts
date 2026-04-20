@@ -6,6 +6,7 @@ import {
   calculateRemainingBudget,
   calculateVat,
   DEFAULT_VAT_CALC_AMOUNT,
+  resolveVatAmount,
 } from './expenseMath';
 
 describe('expenseMath', () => {
@@ -16,6 +17,7 @@ describe('expenseMath', () => {
           id: '1',
           title: 'Lunch',
           amount: 25,
+          vatAmount: null,
           description: 'Team lunch',
           createdDate: '2026-01-01T00:00:00.000Z',
           updatedDate: '2026-01-01T00:00:00.000Z',
@@ -25,6 +27,7 @@ describe('expenseMath', () => {
           id: '2',
           title: 'Travel',
           amount: 15.5,
+          vatAmount: null,
           description: 'Taxi ticket',
           createdDate: '2026-01-02T00:00:00.000Z',
           updatedDate: '2026-01-02T00:00:00.000Z',
@@ -67,6 +70,14 @@ describe('expenseMath', () => {
     expect(calculateVat(123, 0.2)).toBeCloseTo(24.6);
   });
 
+  it('prefers entered VAT amount over calculated VAT amount', () => {
+    expect(resolveVatAmount(123, 0.2, 15)).toBe(15);
+  });
+
+  it('uses calculated VAT amount when entered VAT amount is not provided', () => {
+    expect(resolveVatAmount(123, 0.2, null)).toBeCloseTo(24.6);
+  });
+
   it('summarizes expenses for shared app and MCP usage', () => {
     expect(
       summarizeExpenses(
@@ -75,6 +86,7 @@ describe('expenseMath', () => {
             id: '1',
             title: 'Lunch',
             amount: 25,
+            vatAmount: null,
             description: 'Team lunch',
             createdDate: '2026-01-01T00:00:00.000Z',
             updatedDate: '2026-01-01T00:00:00.000Z',
@@ -84,6 +96,7 @@ describe('expenseMath', () => {
             id: '2',
             title: 'Travel',
             amount: 15.5,
+            vatAmount: null,
             description: 'Taxi ticket',
             createdDate: '2026-01-02T00:00:00.000Z',
             updatedDate: '2026-01-02T00:00:00.000Z',

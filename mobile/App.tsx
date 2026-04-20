@@ -21,6 +21,7 @@ import {
   DEFAULT_VAT_CALC_AMOUNT,
   CurrencySymbol,
   Expense,
+  calculateVat,
   calculateRemainingBudget,
   calculateTotalSpent,
   getBudgetStatus,
@@ -31,6 +32,7 @@ const expenses: Expense[] = [
     id: '1',
     title: 'Team Lunch',
     amount: 120,
+    vatAmount: null,
     description: 'Lunch with client success team.',
     createdDate: '2026-01-05T09:00:00.000Z',
     updatedDate: '2026-01-05T09:00:00.000Z',
@@ -40,6 +42,7 @@ const expenses: Expense[] = [
     id: '2',
     title: 'Taxi',
     amount: 65,
+    vatAmount: null,
     description: 'Airport transfer for partner meeting.',
     createdDate: '2026-01-09T08:30:00.000Z',
     updatedDate: '2026-01-09T08:30:00.000Z',
@@ -49,6 +52,7 @@ const expenses: Expense[] = [
     id: '3',
     title: 'Stationery',
     amount: 40,
+    vatAmount: null,
     description: 'Office stationery refill.',
     createdDate: '2026-01-11T14:15:00.000Z',
     updatedDate: '2026-01-11T14:15:00.000Z',
@@ -113,8 +117,10 @@ export default function App() {
   const [modalMode, setModalMode] = useState<'create' | 'update' | null>(null);
   const [newExpenseTitle, setNewExpenseTitle] = useState('');
   const [newExpenseAmount, setNewExpenseAmount] = useState('');
+  const [newExpenseVatAmount, setNewExpenseVatAmount] = useState('');
   const [newExpenseDescription, setNewExpenseDescription] = useState('');
   const [newExpenseReceipt, setNewExpenseReceipt] = useState('');
+  const [isVatAmountEditedInModal, setIsVatAmountEditedInModal] = useState(false);
   const [selectedExpenseId, setSelectedExpenseId] = useState<string | null>(null);
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const [isProcessingReceipt, setIsProcessingReceipt] = useState(false);
@@ -126,6 +132,10 @@ export default function App() {
     const parsedValue = Number.parseFloat(newExpenseAmount);
     return Number.isFinite(parsedValue) ? parsedValue : null;
   }, [newExpenseAmount]);
+  const parsedExpenseVatAmount = useMemo(() => {
+    const parsedValue = Number.parseFloat(newExpenseVatAmount);
+    return Number.isFinite(parsedValue) ? parsedValue : null;
+  }, [newExpenseVatAmount]);
   const isExpenseAmountValid = parsedExpenseAmount !== null && parsedExpenseAmount > 0;
 
   const selectedExpense = useMemo(
@@ -152,8 +162,10 @@ export default function App() {
     setModalMode(null);
     setNewExpenseTitle('');
     setNewExpenseAmount('');
+    setNewExpenseVatAmount('');
     setNewExpenseDescription('');
     setNewExpenseReceipt('');
+    setIsVatAmountEditedInModal(false);
     setIsProcessingReceipt(false);
   };
 
@@ -161,8 +173,10 @@ export default function App() {
     setModalMode('create');
     setNewExpenseTitle('');
     setNewExpenseAmount('');
+    setNewExpenseVatAmount('');
     setNewExpenseDescription('');
     setNewExpenseReceipt('');
+    setIsVatAmountEditedInModal(false);
     setIsProcessingReceipt(false);
   };
 
@@ -174,9 +188,34 @@ export default function App() {
     setModalMode('update');
     setNewExpenseTitle(selectedExpense.title);
     setNewExpenseAmount(selectedExpense.amount.toString());
+    if (selectedExpense.vatAmount !== null) {
+      setNewExpenseVatAmount(selectedExpense.vatAmount.toString());
+      setIsVatAmountEditedInModal(true);
+    } else {
+      setNewExpenseVatAmount(calculateVat(selectedExpense.amount, vatCalcAmount).toString());
+      setIsVatAmountEditedInModal(false);
+    }
     setNewExpenseDescription(selectedExpense.description);
     setNewExpenseReceipt(selectedExpense.receipt ?? '');
     setIsProcessingReceipt(false);
+  };
+
+  useEffect(() => {
+    if (!isModalVisible || isVatAmountEditedInModal) {
+      return;
+    }
+
+    if (parsedExpenseAmount === null || parsedExpenseAmount <= 0) {
+      setNewExpenseVatAmount('');
+      return;
+    }
+
+    setNewExpenseVatAmount(calculateVat(parsedExpenseAmount, vatCalcAmount).toString());
+  }, [isModalVisible, isVatAmountEditedInModal, parsedExpenseAmount, vatCalcAmount]);
+
+  const handleChangeExpenseVatAmount = (value: string) => {
+    setNewExpenseVatAmount(value);
+    setIsVatAmountEditedInModal(value.trim().length > 0);
   };
 
   const handleReceiptOcr = async (receiptUri: string) => {
@@ -277,8 +316,12 @@ export default function App() {
             ? {
                 ...expense,
                 title: trimmedTitle,
-                amount: parsedExpenseAmount,
-                description: trimmedDescription,
+                  amount: parsedExpenseAmount,
+                  vatAmount:
+                    isVatAmountEditedInModal && parsedExpenseVatAmount !== null && parsedExpenseVatAmount >= 0
+                      ? parsedExpenseVatAmount
+                      : null,
+                  description: trimmedDescription,
                 updatedDate: new Date().toISOString(),
                 receipt: trimmedReceipt || null,
               }
@@ -303,6 +346,10 @@ export default function App() {
           id: nextExpenseId.toString(),
           title: trimmedTitle,
           amount: parsedExpenseAmount,
+          vatAmount:
+            isVatAmountEditedInModal && parsedExpenseVatAmount !== null && parsedExpenseVatAmount >= 0
+              ? parsedExpenseVatAmount
+              : null,
           description: trimmedDescription,
           createdDate: new Date().toISOString(),
           updatedDate: new Date().toISOString(),
@@ -432,6 +479,7 @@ export default function App() {
                 <ExpenseItem
                   title={item.title}
                   amount={item.amount}
+                  vatAmount={item.vatAmount}
                   description={item.description}
                   createdDate={item.createdDate}
                   updatedDate={item.updatedDate}
@@ -456,9 +504,11 @@ export default function App() {
               newExpenseTitle={newExpenseTitle}
               newExpenseAmount={newExpenseAmount}
               newExpenseDescription={newExpenseDescription}
+              newExpenseVatAmount={newExpenseVatAmount}
               newExpenseReceipt={newExpenseReceipt}
               onChangeTitle={setNewExpenseTitle}
               onChangeAmount={setNewExpenseAmount}
+              onChangeVatAmount={handleChangeExpenseVatAmount}
               onChangeDescription={setNewExpenseDescription}
               onSelectReceipt={handleSelectReceipt}
               onClearReceipt={() => setNewExpenseReceipt('')}
