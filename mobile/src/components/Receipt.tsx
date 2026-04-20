@@ -23,7 +23,7 @@ export function Receipt({
   onClearReceipt,
 }: ReceiptProps) {
   const [isViewerOpen, setIsViewerOpen] = useState(false);
-  const hasReceipt = Boolean(receiptUri.trim());
+  const hasReceipt = Boolean(receiptUri?.trim());
 
   return (
     <View style={styles.receiptSection}>
