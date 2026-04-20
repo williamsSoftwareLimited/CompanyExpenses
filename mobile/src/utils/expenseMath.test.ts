@@ -111,9 +111,9 @@ describe('expenseMath', () => {
       remainingBudget: 59.5,
       budgetStatus: 'on-track',
       expenseCount: 2,
-      formattedTotalBudget: '£100.00',
-      formattedTotalSpent: '£40.50',
-      formattedRemainingBudget: '£59.50',
+      formattedTotalBudget: '€100.00',
+      formattedTotalSpent: '€40.50',
+      formattedRemainingBudget: '€59.50',
     });
   });
 });
