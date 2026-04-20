@@ -25,6 +25,7 @@ export const styles = StyleSheet.create({
   },
   modalBackgroundPressable: {
     ...StyleSheet.absoluteFillObject,
+    zIndex: 0,
   },
   modalKeyboardContainer: {
     flex: 1,
