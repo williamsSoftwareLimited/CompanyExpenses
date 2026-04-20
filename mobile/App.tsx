@@ -216,7 +216,7 @@ export default function App() {
 
   const handleChangeExpenseVatAmount = (value: string) => {
     setNewExpenseVatAmount(value);
-    setIsVatAmountEditedInModal(value.trim().length > 0);
+    setIsVatAmountEditedInModal(true);
   };
 
   const handleReceiptOcr = async (receiptUri: string) => {
