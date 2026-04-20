@@ -78,7 +78,7 @@ export const SettingsPanel = ({
   const handleVatCalcAmountEndEditing = () => {
     const parsedVatCalcAmount = parseVatCalcAmount(vatCalcAmountInput);
 
-    if (parsedVatCalcAmount !== null && parsedVatCalcAmount >= 0) {
+    if (parsedVatCalcAmount !== null && parsedVatCalcAmount > 0) {
       onVatCalcAmountChange(parsedVatCalcAmount);
       setVatCalcAmountInput(parsedVatCalcAmount.toString());
       return;
@@ -113,7 +113,9 @@ export const SettingsPanel = ({
         value={vatCalcAmountInput}
         onChangeText={setVatCalcAmountInput}
         onEndEditing={handleVatCalcAmountEndEditing}
+        keyboardType="numbers-and-punctuation"
         accessibilityLabel="VAT calculation amount"
+        accessibilityHint="Enter a decimal like 0.18699 or a fraction like 23/123"
         style={styles.budgetInput}
       />
       <Pressable
