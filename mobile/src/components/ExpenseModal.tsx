@@ -1,7 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import {
-  ActivityIndicator,
-  Image,
   Keyboard,
   KeyboardAvoidingView,
   Modal,
@@ -12,6 +10,7 @@ import {
   View,
 } from 'react-native';
 import { styles } from './ExpenseModalStyles';
+import { Receipt } from './Receipt';
 
 const BLUR_DEBOUNCE_MS = 50;
 const CLOSE_ICON = '✕';
@@ -159,55 +158,12 @@ export function ExpenseModal({
               style={styles.modalInput}
               multiline
             />
-            <View style={styles.receiptSection}>
-              <Text style={styles.receiptSectionTitle}>Receipt</Text>
-              <View style={styles.receiptHolder}>
-                {newExpenseReceipt ? (
-                  <Image
-                    source={{ uri: newExpenseReceipt }}
-                    style={styles.receiptImage}
-                    accessibilityLabel="Selected receipt image"
-                  />
-                ) : (
-                  <Text style={styles.receiptPlaceholderText}>No receipt selected</Text>
-                )}
-              </View>
-              {isProcessingReceipt ? (
-                <View style={styles.ocrStatus}>
-                  <ActivityIndicator size="small" color="#2f6bed" />
-                  <Text style={styles.ocrStatusText}>Reading receipt with OCR…</Text>
-                </View>
-              ) : null}
-              <View style={styles.receiptActions}>
-                <Pressable
-                  style={[styles.actionButton, styles.receiptActionButton]}
-                  onPress={() => {
-                    void onSelectReceipt('camera');
-                  }}
-                  accessibilityLabel="Take receipt photo"
-                >
-                  <Text style={styles.actionButtonText}>Take photo</Text>
-                </Pressable>
-                <Pressable
-                  style={[styles.actionButton, styles.receiptActionButton]}
-                  onPress={() => {
-                    void onSelectReceipt('library');
-                  }}
-                  accessibilityLabel="Choose receipt from photos"
-                >
-                  <Text style={styles.actionButtonText}>Choose photo</Text>
-                </Pressable>
-                {newExpenseReceipt ? (
-                  <Pressable
-                    style={[styles.actionButton, styles.receiptActionButton, styles.clearReceiptButton]}
-                    onPress={onClearReceipt}
-                    accessibilityLabel="Remove selected receipt"
-                  >
-                    <Text style={styles.actionButtonText}>Clear</Text>
-                  </Pressable>
-                ) : null}
-              </View>
-            </View>
+            <Receipt
+              receiptUri={newExpenseReceipt}
+              isProcessingReceipt={isProcessingReceipt}
+              onSelectReceipt={onSelectReceipt}
+              onClearReceipt={onClearReceipt}
+            />
             {isKeyboardVisible || isAnyInputFocused ? (
               <Pressable
                 style={styles.keyboardDismissButton}
