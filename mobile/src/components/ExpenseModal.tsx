@@ -100,13 +100,14 @@ export function ExpenseModal({
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 24 : 0}
       >
-          <Pressable
-            style={styles.modalOverlay}
-            onPress={Keyboard.dismiss}
-            accessibilityRole="button"
-            accessibilityLabel="Modal background"
-          >
-            <Pressable style={styles.modalCard} onPress={(event) => event.stopPropagation()}>
+          <View style={styles.modalOverlay}>
+            <Pressable
+              style={styles.modalBackgroundPressable}
+              onPress={Keyboard.dismiss}
+              accessibilityRole="button"
+              accessibilityLabel="Modal background"
+            />
+            <View style={styles.modalCard}>
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>{modalTitle}</Text>
                 <Pressable
@@ -197,8 +198,8 @@ export function ExpenseModal({
                 <Text style={styles.actionButtonText}>Cancel</Text>
               </Pressable>
             </View>
-          </Pressable>
-        </Pressable>
+            </View>
+          </View>
       </KeyboardAvoidingView>
     </Modal>
   );

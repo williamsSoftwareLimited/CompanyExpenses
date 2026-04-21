@@ -23,6 +23,10 @@ export const styles = StyleSheet.create({
     padding: 16,
     paddingTop: 72,
   },
+  modalBackgroundPressable: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 0,
+  },
   modalKeyboardContainer: {
     flex: 1,
   },
@@ -31,6 +35,7 @@ export const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 16,
     gap: 10,
+    zIndex: 1,
   },
   modalHeader: {
     flexDirection: 'row',
